@@ -7,241 +7,184 @@ package db
 import (
 	"database/sql"
 	"time"
+
+	"github.com/google/uuid"
 )
 
-type AppUser struct {
-	UserID    int32          `json:"user_id"`
-	UserName  string         `json:"user_name"`
-	Email     sql.NullString `json:"email"`
-	CreatedAt sql.NullTime   `json:"created_at"`
-}
-
 type BusinessUnit struct {
-	BusinessUnitID   int32  `json:"business_unit_id"`
-	BusinessUnitName string `json:"business_unit_name"`
+	ID          int32          `json:"id"`
+	Name        string         `json:"name"`
+	Description sql.NullString `json:"description"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
 }
 
-type Campaign struct {
-	CampaignID         int32          `json:"campaign_id"`
-	CampaignName       string         `json:"campaign_name"`
-	CampaignCategoryID sql.NullInt32  `json:"campaign_category_id"`
-	CampaignType       string         `json:"campaign_type"`
-	PhoneNumber        sql.NullString `json:"phone_number"`
-	CreatedAt          sql.NullTime   `json:"created_at"`
+type CallCampaign struct {
+	ID          int32          `json:"id"`
+	Name        string         `json:"name"`
+	Description sql.NullString `json:"description"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
 }
 
 type CampaignCategory struct {
-	CampaignCategoryID int32  `json:"campaign_category_id"`
-	CategoryName       string `json:"category_name"`
+	ID          int32          `json:"id"`
+	Name        string         `json:"name"`
+	Description sql.NullString `json:"description"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
 }
 
 type Customer struct {
-	CustomerID   int32          `json:"customer_id"`
-	CustomerName string         `json:"customer_name"`
-	CustomerType string         `json:"customer_type"`
+	ID           int32          `json:"id"`
+	Name         string         `json:"name"`
 	City         sql.NullString `json:"city"`
 	State        sql.NullString `json:"state"`
-	ZipCode      sql.NullString `json:"zip_code"`
-	CreatedAt    sql.NullTime   `json:"created_at"`
-}
-
-type CustomerTag struct {
-	CustomerTagID int32  `json:"customer_tag_id"`
-	TagName       string `json:"tag_name"`
-}
-
-type CustomerTagAssignment struct {
-	CustomerID    int32 `json:"customer_id"`
-	CustomerTagID int32 `json:"customer_tag_id"`
+	Zip          sql.NullString `json:"zip"`
+	CustomerType sql.NullString `json:"customer_type"`
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
 }
 
 type Estimate struct {
-	EstimateID       int32        `json:"estimate_id"`
-	JobID            int32        `json:"job_id"`
-	EstimateSubtotal string       `json:"estimate_subtotal"`
-	IsSold           sql.NullBool `json:"is_sold"`
-	SoldOnDate       sql.NullTime `json:"sold_on_date"`
-	CreatedAt        sql.NullTime `json:"created_at"`
-}
-
-type GeneralLedgerAccount struct {
-	GlAccountID int32  `json:"gl_account_id"`
-	AccountCode string `json:"account_code"`
-	AccountName string `json:"account_name"`
-	AccountType string `json:"account_type"`
+	ID              int32          `json:"id"`
+	Name            string         `json:"name"`
+	Description     sql.NullString `json:"description"`
+	Subtotal        sql.NullString `json:"subtotal"`
+	IsSold          sql.NullBool   `json:"is_sold"`
+	SoldBy          uuid.NullUUID  `json:"sold_by"`
+	InvoicesID      sql.NullInt32  `json:"invoices_id"`
+	OpportunitiesID sql.NullInt32  `json:"opportunities_id"`
+	JobsID          sql.NullInt32  `json:"jobs_id"`
+	SoldOnDate      sql.NullTime   `json:"sold_on_date"`
+	CreatedAt       time.Time      `json:"created_at"`
+	UpdatedAt       time.Time      `json:"updated_at"`
 }
 
 type Invoice struct {
-	InvoiceID   int32        `json:"invoice_id"`
-	JobID       int32        `json:"job_id"`
-	InvoiceDate time.Time    `json:"invoice_date"`
-	CreatedAt   sql.NullTime `json:"created_at"`
-}
-
-type InvoiceItem struct {
-	InvoiceItemID int32          `json:"invoice_item_id"`
-	InvoiceID     int32          `json:"invoice_id"`
-	GlAccountID   sql.NullInt32  `json:"gl_account_id"`
-	Description   sql.NullString `json:"description"`
-	Quantity      string         `json:"quantity"`
-	UnitPrice     string         `json:"unit_price"`
-	Amount        string         `json:"amount"`
-	TaxAmount     sql.NullString `json:"tax_amount"`
-	ItemOrder     sql.NullInt32  `json:"item_order"`
+	ID              int32         `json:"id"`
+	CustomersID     int32         `json:"customers_id"`
+	JobsID          sql.NullInt32 `json:"jobs_id"`
+	EstimatesID     sql.NullInt32 `json:"estimates_id"`
+	BusinessUnitsID sql.NullInt32 `json:"business_units_id"`
+	IsPaid          sql.NullBool  `json:"is_paid"`
+	CreatedAt       time.Time     `json:"created_at"`
+	UpdatedAt       time.Time     `json:"updated_at"`
 }
 
 type Job struct {
-	JobID              int32          `json:"job_id"`
+	ID                 int32          `json:"id"`
 	JobTypeID          int32          `json:"job_type_id"`
 	BusinessUnitID     int32          `json:"business_unit_id"`
 	CustomerID         int32          `json:"customer_id"`
 	LocationID         int32          `json:"location_id"`
-	ProjectID          sql.NullInt32  `json:"project_id"`
-	JobCampaignID      sql.NullInt32  `json:"job_campaign_id"`
-	CallCampaignID     sql.NullInt32  `json:"call_campaign_id"`
+	ProjectID          int32          `json:"project_id"`
+	JobCampaignID      int32          `json:"job_campaign_id"`
+	CallCampaignID     int32          `json:"call_campaign_id"`
 	JobStatus          string         `json:"job_status"`
-	Priority           sql.NullString `json:"priority"`
-	Summary            sql.NullString `json:"summary"`
+	JobPriority        string         `json:"job_priority"`
+	JobSummary         sql.NullString `json:"job_summary"`
 	JobCreationDate    time.Time      `json:"job_creation_date"`
 	JobScheduleDate    sql.NullTime   `json:"job_schedule_date"`
 	JobCompletionDate  sql.NullTime   `json:"job_completion_date"`
-	ScheduledTime      sql.NullTime   `json:"scheduled_time"`
-	FirstDispatchDate  sql.NullTime   `json:"first_dispatch_date"`
-	HoldDate           sql.NullTime   `json:"hold_date"`
-	StartOfWorkTime    sql.NullTime   `json:"start_of_work_time"`
-	EndOfWorkTime      sql.NullTime   `json:"end_of_work_time"`
-	BookedByUserID     sql.NullInt32  `json:"booked_by_user_id"`
-	DispatchedByUserID sql.NullInt32  `json:"dispatched_by_user_id"`
-	SoldByTechnicianID sql.NullInt32  `json:"sold_by_technician_id"`
+	AssignedTechID     uuid.NullUUID  `json:"assigned_tech_id"`
+	SoldTechID         uuid.NullUUID  `json:"sold_tech_id"`
+	SoldBuID           sql.NullInt32  `json:"sold_bu_id"`
+	CountOfEstimates   sql.NullInt32  `json:"count_of_estimates"`
+	SoldEstimateID     sql.NullInt32  `json:"sold_estimate_id"`
+	CampaignCategoryID sql.NullInt32  `json:"campaign_category_id"`
+	InvoiceID          sql.NullInt32  `json:"invoice_id"`
+	OpportunityID      sql.NullInt32  `json:"opportunity_id"`
 	IsWarranty         sql.NullBool   `json:"is_warranty"`
-	WarrantyForJobID   sql.NullInt32  `json:"warranty_for_job_id"`
+	WarrantyOfJobID    sql.NullInt32  `json:"warranty_of_job_id"`
 	IsRecall           sql.NullBool   `json:"is_recall"`
-	RecallForJobID     sql.NullInt32  `json:"recall_for_job_id"`
+	RecallOfJobID      sql.NullInt32  `json:"recall_of_job_id"`
+	IsConverted        sql.NullBool   `json:"is_converted"`
+	SurveyScore        sql.NullInt32  `json:"survey_score"`
+	DispatchedByUserID uuid.NullUUID  `json:"dispatched_by_user_id"`
+	BookedByUserID     uuid.NullUUID  `json:"booked_by_user_id"`
+	JobIDOfCreatedLead sql.NullInt32  `json:"job_id_of_created_lead"`
+	IsZeroCost         sql.NullBool   `json:"is_zero_cost"`
+	ScheduledTime      sql.NullTime   `json:"scheduled_time"`
+	FirstDispatch      sql.NullTime   `json:"first_dispatch"`
+	HoldDate           sql.NullTime   `json:"hold_date"`
+	SoldDate           sql.NullTime   `json:"sold_date"`
+	StartTime          sql.NullTime   `json:"start_time"`
+	EndTime            sql.NullTime   `json:"end_time"`
+	PrimaryTechID      uuid.NullUUID  `json:"primary_tech_id"`
+	FirstResponseTime  sql.NullInt32  `json:"first_response_time"`
 }
 
-type JobLead struct {
-	JobLeadID   int32        `json:"job_lead_id"`
-	SourceJobID int32        `json:"source_job_id"`
-	LeadJobID   int32        `json:"lead_job_id"`
-	CreatedAt   sql.NullTime `json:"created_at"`
+type JobCampaign struct {
+	ID          int32          `json:"id"`
+	Name        string         `json:"name"`
+	Description sql.NullString `json:"description"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
 }
 
-type JobTag struct {
-	JobTagID int32  `json:"job_tag_id"`
-	TagName  string `json:"tag_name"`
-}
-
-type JobTagAssignment struct {
-	JobID    int32 `json:"job_id"`
-	JobTagID int32 `json:"job_tag_id"`
-}
-
-type JobTechnician struct {
-	JobTechnicianID int32          `json:"job_technician_id"`
-	JobID           int32          `json:"job_id"`
-	TechnicianID    int32          `json:"technician_id"`
-	SplitPercentage string         `json:"split_percentage"`
-	AssignmentOrder int32          `json:"assignment_order"`
-	HoursWorked     sql.NullString `json:"hours_worked"`
+type JobSkill struct {
+	ID             int32          `json:"id"`
+	Name           string         `json:"name"`
+	Description    sql.NullString `json:"description"`
+	BusinessUnitID sql.NullInt32  `json:"business_unit_id"`
+	CreatedAt      time.Time      `json:"created_at"`
+	UpdatedAt      time.Time      `json:"updated_at"`
 }
 
 type JobType struct {
-	JobTypeID     int32          `json:"job_type_id"`
-	JobTypeName   string         `json:"job_type_name"`
-	SoldThreshold sql.NullString `json:"sold_threshold"`
+	ID             int32          `json:"id"`
+	Name           string         `json:"name"`
+	Description    sql.NullString `json:"description"`
+	BusinessUnitID sql.NullInt32  `json:"business_unit_id"`
+	SkillsID       sql.NullInt32  `json:"skills_id"`
+	CreatedAt      time.Time      `json:"created_at"`
+	UpdatedAt      time.Time      `json:"updated_at"`
 }
 
 type Location struct {
-	LocationID    int32          `json:"location_id"`
-	CustomerID    int32          `json:"customer_id"`
-	City          sql.NullString `json:"city"`
-	State         sql.NullString `json:"state"`
-	ZipCode       sql.NullString `json:"zip_code"`
-	StreetAddress sql.NullString `json:"street_address"`
+	ID         int32          `json:"id"`
+	Name       string         `json:"name"`
+	City       sql.NullString `json:"city"`
+	State      sql.NullString `json:"state"`
+	Zip        sql.NullString `json:"zip"`
+	CustomerID int32          `json:"customer_id"`
+	CreatedAt  time.Time      `json:"created_at"`
+	UpdatedAt  time.Time      `json:"updated_at"`
 }
 
-type LocationTag struct {
-	LocationTagID int32  `json:"location_tag_id"`
-	TagName       string `json:"tag_name"`
-}
-
-type LocationTagAssignment struct {
-	LocationID    int32 `json:"location_id"`
-	LocationTagID int32 `json:"location_tag_id"`
-}
-
-type Membership struct {
-	MembershipID   int32          `json:"membership_id"`
-	CustomerID     int32          `json:"customer_id"`
-	MembershipType sql.NullString `json:"membership_type"`
-	StartDate      time.Time      `json:"start_date"`
-	EndDate        sql.NullTime   `json:"end_date"`
-	Status         string         `json:"status"`
+type Opportunity struct {
+	ID              int32         `json:"id"`
+	CreatedAt       time.Time     `json:"created_at"`
+	UpdatedAt       time.Time     `json:"updated_at"`
+	BusinessUnitsID sql.NullInt32 `json:"business_units_id"`
+	JobTypesID      sql.NullInt32 `json:"job_types_id"`
+	TechniciansID   uuid.NullUUID `json:"technicians_id"`
+	JobsID          sql.NullInt32 `json:"jobs_id"`
 }
 
 type Project struct {
-	ProjectID   int32          `json:"project_id"`
-	ProjectName sql.NullString `json:"project_name"`
-	CreatedAt   sql.NullTime   `json:"created_at"`
-}
-
-type Survey struct {
-	SurveyID    int32          `json:"survey_id"`
-	JobID       int32          `json:"job_id"`
-	SurveyScore sql.NullString `json:"survey_score"`
-	SurveyDate  sql.NullTime   `json:"survey_date"`
-	Comments    sql.NullString `json:"comments"`
+	ID        int32          `json:"id"`
+	Summary   sql.NullString `json:"summary"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
 }
 
 type Technician struct {
-	TechnicianID   int32          `json:"technician_id"`
-	TechnicianName string         `json:"technician_name"`
-	BusinessUnitID sql.NullInt32  `json:"business_unit_id"`
-	Email          sql.NullString `json:"email"`
-	CreatedAt      sql.NullTime   `json:"created_at"`
+	ID          uuid.UUID      `json:"id"`
+	Name        string         `json:"name"`
+	Email       string         `json:"email"`
+	PhoneNumber sql.NullString `json:"phone_number"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
 }
 
-type VwCustomerMembershipStatus struct {
-	CustomerID   int32  `json:"customer_id"`
-	MemberStatus string `json:"member_status"`
-}
-
-type VwJobConverted struct {
-	JobID       int32 `json:"job_id"`
-	IsConverted bool  `json:"is_converted"`
-}
-
-type VwJobEstimateSummary struct {
-	JobID                int32       `json:"job_id"`
-	CountOfEstimates     int64       `json:"count_of_estimates"`
-	SoldEstimateSubtotal interface{} `json:"sold_estimate_subtotal"`
-}
-
-type VwJobFinancialSummary struct {
-	JobID           int32       `json:"job_id"`
-	JobSubtotal     interface{} `json:"job_subtotal"`
-	JobTotal        interface{} `json:"job_total"`
-	Revenue         interface{} `json:"revenue"`
-	IsZeroDollarJob bool        `json:"is_zero_dollar_job"`
-}
-
-type VwJobFirstResponseTime struct {
-	JobID                    int32 `json:"job_id"`
-	FirstResponseTimeMinutes int32 `json:"first_response_time_minutes"`
-}
-
-type VwJobOpportunity struct {
-	JobID         int32       `json:"job_id"`
-	OpportunityID interface{} `json:"opportunity_id"`
-}
-
-type VwJobPrimaryTechnician struct {
-	JobID                 int32  `json:"job_id"`
-	PrimaryTechnicianID   int32  `json:"primary_technician_id"`
-	PrimaryTechnicianName string `json:"primary_technician_name"`
-}
-
-type VwJobTotalHour struct {
-	JobID            int32       `json:"job_id"`
-	TotalHoursWorked interface{} `json:"total_hours_worked"`
+type User struct {
+	ID          uuid.UUID      `json:"id"`
+	Name        string         `json:"name"`
+	Email       string         `json:"email"`
+	PhoneNumber sql.NullString `json:"phone_number"`
+	IsTech      sql.NullBool   `json:"is_tech"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
 }

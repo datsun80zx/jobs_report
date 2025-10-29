@@ -8,88 +8,131 @@ package db
 import (
 	"context"
 	"database/sql"
+
+	"github.com/google/uuid"
 )
 
 const createUser = `-- name: CreateUser :one
-
-INSERT INTO app_user (user_name, email)
-VALUES ($1, $2)
-RETURNING user_id, user_name, email, created_at
+INSERT INTO users (id, name, email, phone_number, is_tech, created_at, updated_at)
+VALUES (
+    gen_random_uuid(),
+    $1,
+    $2,
+    $3,
+    $4,
+    NOW(),
+    NOW()
+)
+RETURNING id, name, email, phone_number, is_tech, created_at, updated_at
 `
 
 type CreateUserParams struct {
-	UserName string         `json:"user_name"`
-	Email    sql.NullString `json:"email"`
+	Name        string         `json:"name"`
+	Email       string         `json:"email"`
+	PhoneNumber sql.NullString `json:"phone_number"`
+	IsTech      sql.NullBool   `json:"is_tech"`
 }
 
-// =====================================================
-// USER QUERIES
-// =====================================================
-func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (AppUser, error) {
-	row := q.db.QueryRowContext(ctx, createUser, arg.UserName, arg.Email)
-	var i AppUser
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, createUser,
+		arg.Name,
+		arg.Email,
+		arg.PhoneNumber,
+		arg.IsTech,
+	)
+	var i User
 	err := row.Scan(
-		&i.UserID,
-		&i.UserName,
+		&i.ID,
+		&i.Name,
 		&i.Email,
+		&i.PhoneNumber,
+		&i.IsTech,
 		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT user_id, user_name, email, created_at FROM app_user WHERE user_id = $1
+SELECT id, name, email, phone_number, is_tech, created_at, updated_at FROM users
+WHERE id = $1
 `
 
-func (q *Queries) GetUserByID(ctx context.Context, userID int32) (AppUser, error) {
-	row := q.db.QueryRowContext(ctx, getUserByID, userID)
-	var i AppUser
+func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByID, id)
+	var i User
 	err := row.Scan(
-		&i.UserID,
-		&i.UserName,
+		&i.ID,
+		&i.Name,
 		&i.Email,
+		&i.PhoneNumber,
+		&i.IsTech,
 		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const getUserByName = `-- name: GetUserByName :one
-SELECT user_id, user_name, email, created_at FROM app_user WHERE user_name = $1
+SELECT id, name, email, phone_number, is_tech, created_at, updated_at FROM users 
+WHERE name = $1
 `
 
-func (q *Queries) GetUserByName(ctx context.Context, userName string) (AppUser, error) {
-	row := q.db.QueryRowContext(ctx, getUserByName, userName)
-	var i AppUser
+func (q *Queries) GetUserByName(ctx context.Context, name string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByName, name)
+	var i User
 	err := row.Scan(
-		&i.UserID,
-		&i.UserName,
+		&i.ID,
+		&i.Name,
 		&i.Email,
+		&i.PhoneNumber,
+		&i.IsTech,
 		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const upsertUser = `-- name: UpsertUser :one
-INSERT INTO app_user (user_name, email)
-VALUES ($1, $2)
-ON CONFLICT (user_name) 
-DO UPDATE SET email = EXCLUDED.email
-RETURNING user_id, user_name, email, created_at
+INSERT INTO users (id, name, email, phone_number, is_tech, created_at, updated_at)
+VALUES (
+    gen_random_uuid(),
+    $1,
+    $2,
+    $3,
+    $4,
+    NOW(),
+    NOW()
+)
+ON CONFLICT (id)
+DO UPDATE SET 
+    updated_at = NOW()
+RETURNING id, name, email, phone_number, is_tech, created_at, updated_at
 `
 
 type UpsertUserParams struct {
-	UserName string         `json:"user_name"`
-	Email    sql.NullString `json:"email"`
+	Name        string         `json:"name"`
+	Email       string         `json:"email"`
+	PhoneNumber sql.NullString `json:"phone_number"`
+	IsTech      sql.NullBool   `json:"is_tech"`
 }
 
-func (q *Queries) UpsertUser(ctx context.Context, arg UpsertUserParams) (AppUser, error) {
-	row := q.db.QueryRowContext(ctx, upsertUser, arg.UserName, arg.Email)
-	var i AppUser
+func (q *Queries) UpsertUser(ctx context.Context, arg UpsertUserParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, upsertUser,
+		arg.Name,
+		arg.Email,
+		arg.PhoneNumber,
+		arg.IsTech,
+	)
+	var i User
 	err := row.Scan(
-		&i.UserID,
-		&i.UserName,
+		&i.ID,
+		&i.Name,
 		&i.Email,
+		&i.PhoneNumber,
+		&i.IsTech,
 		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }

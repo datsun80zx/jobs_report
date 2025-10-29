@@ -11,65 +11,95 @@ import (
 )
 
 const createEstimate = `-- name: CreateEstimate :one
-
-INSERT INTO estimate (job_id, estimate_subtotal, is_sold, sold_on_date)
-VALUES ($1, $2, $3, $4)
-RETURNING estimate_id, job_id, estimate_subtotal, is_sold, sold_on_date, created_at
+INSERT INTO estimates (id, name, description, subtotal, is_sold, invoices_id, opportunities_id, jobs_id, sold_on_date, created_at, updated_at)
+VALUES (
+    $1, 
+    $2,
+    $3,
+    $4,
+    $5,
+    $6,
+    $7,
+    $8,
+    $9,
+    NOW(),
+    NOW()
+)
+RETURNING id, name, description, subtotal, is_sold, sold_by, invoices_id, opportunities_id, jobs_id, sold_on_date, created_at, updated_at
 `
 
 type CreateEstimateParams struct {
-	JobID            int32        `json:"job_id"`
-	EstimateSubtotal string       `json:"estimate_subtotal"`
-	IsSold           sql.NullBool `json:"is_sold"`
-	SoldOnDate       sql.NullTime `json:"sold_on_date"`
+	ID              int32          `json:"id"`
+	Name            string         `json:"name"`
+	Description     sql.NullString `json:"description"`
+	Subtotal        sql.NullString `json:"subtotal"`
+	IsSold          sql.NullBool   `json:"is_sold"`
+	InvoicesID      sql.NullInt32  `json:"invoices_id"`
+	OpportunitiesID sql.NullInt32  `json:"opportunities_id"`
+	JobsID          sql.NullInt32  `json:"jobs_id"`
+	SoldOnDate      sql.NullTime   `json:"sold_on_date"`
 }
 
-// =====================================================
-// ESTIMATE QUERIES
-// =====================================================
 func (q *Queries) CreateEstimate(ctx context.Context, arg CreateEstimateParams) (Estimate, error) {
 	row := q.db.QueryRowContext(ctx, createEstimate,
-		arg.JobID,
-		arg.EstimateSubtotal,
+		arg.ID,
+		arg.Name,
+		arg.Description,
+		arg.Subtotal,
 		arg.IsSold,
+		arg.InvoicesID,
+		arg.OpportunitiesID,
+		arg.JobsID,
 		arg.SoldOnDate,
 	)
 	var i Estimate
 	err := row.Scan(
-		&i.EstimateID,
-		&i.JobID,
-		&i.EstimateSubtotal,
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.Subtotal,
 		&i.IsSold,
+		&i.SoldBy,
+		&i.InvoicesID,
+		&i.OpportunitiesID,
+		&i.JobsID,
 		&i.SoldOnDate,
 		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const getEstimateByID = `-- name: GetEstimateByID :one
-SELECT estimate_id, job_id, estimate_subtotal, is_sold, sold_on_date, created_at FROM estimate WHERE estimate_id = $1
+SELECT id, name, description, subtotal, is_sold, sold_by, invoices_id, opportunities_id, jobs_id, sold_on_date, created_at, updated_at FROM estimates WHERE id = $1
 `
 
-func (q *Queries) GetEstimateByID(ctx context.Context, estimateID int32) (Estimate, error) {
-	row := q.db.QueryRowContext(ctx, getEstimateByID, estimateID)
+func (q *Queries) GetEstimateByID(ctx context.Context, id int32) (Estimate, error) {
+	row := q.db.QueryRowContext(ctx, getEstimateByID, id)
 	var i Estimate
 	err := row.Scan(
-		&i.EstimateID,
-		&i.JobID,
-		&i.EstimateSubtotal,
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.Subtotal,
 		&i.IsSold,
+		&i.SoldBy,
+		&i.InvoicesID,
+		&i.OpportunitiesID,
+		&i.JobsID,
 		&i.SoldOnDate,
 		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const getEstimatesByJobID = `-- name: GetEstimatesByJobID :many
-SELECT estimate_id, job_id, estimate_subtotal, is_sold, sold_on_date, created_at FROM estimate WHERE job_id = $1 ORDER BY created_at
+SELECT id, name, description, subtotal, is_sold, sold_by, invoices_id, opportunities_id, jobs_id, sold_on_date, created_at, updated_at FROM estimates WHERE jobs_id = $1 ORDER BY created_at
 `
 
-func (q *Queries) GetEstimatesByJobID(ctx context.Context, jobID int32) ([]Estimate, error) {
-	rows, err := q.db.QueryContext(ctx, getEstimatesByJobID, jobID)
+func (q *Queries) GetEstimatesByJobID(ctx context.Context, jobsID sql.NullInt32) ([]Estimate, error) {
+	rows, err := q.db.QueryContext(ctx, getEstimatesByJobID, jobsID)
 	if err != nil {
 		return nil, err
 	}
@@ -78,12 +108,18 @@ func (q *Queries) GetEstimatesByJobID(ctx context.Context, jobID int32) ([]Estim
 	for rows.Next() {
 		var i Estimate
 		if err := rows.Scan(
-			&i.EstimateID,
-			&i.JobID,
-			&i.EstimateSubtotal,
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.Subtotal,
 			&i.IsSold,
+			&i.SoldBy,
+			&i.InvoicesID,
+			&i.OpportunitiesID,
+			&i.JobsID,
 			&i.SoldOnDate,
 			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -99,18 +135,18 @@ func (q *Queries) GetEstimatesByJobID(ctx context.Context, jobID int32) ([]Estim
 }
 
 const updateEstimateSold = `-- name: UpdateEstimateSold :exec
-UPDATE estimate 
+UPDATE estimates
 SET is_sold = $2, sold_on_date = $3
-WHERE estimate_id = $1
+WHERE id = $1
 `
 
 type UpdateEstimateSoldParams struct {
-	EstimateID int32        `json:"estimate_id"`
+	ID         int32        `json:"id"`
 	IsSold     sql.NullBool `json:"is_sold"`
 	SoldOnDate sql.NullTime `json:"sold_on_date"`
 }
 
 func (q *Queries) UpdateEstimateSold(ctx context.Context, arg UpdateEstimateSoldParams) error {
-	_, err := q.db.ExecContext(ctx, updateEstimateSold, arg.EstimateID, arg.IsSold, arg.SoldOnDate)
+	_, err := q.db.ExecContext(ctx, updateEstimateSold, arg.ID, arg.IsSold, arg.SoldOnDate)
 	return err
 }

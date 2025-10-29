@@ -1,23 +1,34 @@
--- =====================================================
--- BUSINESS UNIT QUERIES
--- =====================================================
-
 -- name: CreateBusinessUnit :one
-INSERT INTO business_unit (business_unit_name)
-VALUES ($1)
+INSERT INTO business_units (id, name, description, created_at, updated_at)
+VALUES (
+    $1, 
+    $2,
+    $3,
+    NOW(),
+    NOW()
+)
 RETURNING *;
 
 -- name: GetBusinessUnitByID :one
-SELECT * FROM business_unit WHERE business_unit_id = $1;
+SELECT * FROM business_units 
+WHERE id = $1; 
 
 -- name: GetBusinessUnitByName :one
-SELECT * FROM business_unit WHERE business_unit_name = $1;
+SELECT * FROM business_units 
+WHERE name = $1;
 
 -- name: UpsertBusinessUnit :one
-INSERT INTO business_unit (business_unit_name)
-VALUES ($1)
-ON CONFLICT (business_unit_name) DO NOTHING
+INSERT INTO business_units (id, name, description, created_at, updated_at)
+VALUES (
+    $1, 
+    $2,
+    $3,
+    NOW(),
+    NOW()
+)
+ON CONFLICT (id) DO NOTHING
 RETURNING *;
 
 -- name: ListBusinessUnits :many
-SELECT * FROM business_unit ORDER BY business_unit_name;
+SELECT * FROM business_units 
+ORDER BY name;

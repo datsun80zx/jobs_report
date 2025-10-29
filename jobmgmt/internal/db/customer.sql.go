@@ -11,67 +11,75 @@ import (
 )
 
 const createCustomer = `-- name: CreateCustomer :one
-
-INSERT INTO customer (customer_id, customer_name, customer_type, city, state, zip_code)
-VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING customer_id, customer_name, customer_type, city, state, zip_code, created_at
+INSERT INTO customers (id, name, city, state, zip, customer_type,created_at, updated_at)
+VALUES (
+    $1, 
+    $2, 
+    $3, 
+    $4, 
+    $5, 
+    $6,
+    NOW(),
+    NOW()
+)
+RETURNING id, name, city, state, zip, customer_type, created_at, updated_at
 `
 
 type CreateCustomerParams struct {
-	CustomerID   int32          `json:"customer_id"`
-	CustomerName string         `json:"customer_name"`
-	CustomerType string         `json:"customer_type"`
+	ID           int32          `json:"id"`
+	Name         string         `json:"name"`
 	City         sql.NullString `json:"city"`
 	State        sql.NullString `json:"state"`
-	ZipCode      sql.NullString `json:"zip_code"`
+	Zip          sql.NullString `json:"zip"`
+	CustomerType sql.NullString `json:"customer_type"`
 }
 
-// =====================================================
-// CUSTOMER QUERIES
-// =====================================================
 func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) (Customer, error) {
 	row := q.db.QueryRowContext(ctx, createCustomer,
-		arg.CustomerID,
-		arg.CustomerName,
-		arg.CustomerType,
+		arg.ID,
+		arg.Name,
 		arg.City,
 		arg.State,
-		arg.ZipCode,
+		arg.Zip,
+		arg.CustomerType,
 	)
 	var i Customer
 	err := row.Scan(
-		&i.CustomerID,
-		&i.CustomerName,
-		&i.CustomerType,
+		&i.ID,
+		&i.Name,
 		&i.City,
 		&i.State,
-		&i.ZipCode,
+		&i.Zip,
+		&i.CustomerType,
 		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const getCustomerByID = `-- name: GetCustomerByID :one
-SELECT customer_id, customer_name, customer_type, city, state, zip_code, created_at FROM customer WHERE customer_id = $1
+SELECT id, name, city, state, zip, customer_type, created_at, updated_at FROM customers 
+WHERE id = $1
 `
 
-func (q *Queries) GetCustomerByID(ctx context.Context, customerID int32) (Customer, error) {
-	row := q.db.QueryRowContext(ctx, getCustomerByID, customerID)
+func (q *Queries) GetCustomerByID(ctx context.Context, id int32) (Customer, error) {
+	row := q.db.QueryRowContext(ctx, getCustomerByID, id)
 	var i Customer
 	err := row.Scan(
-		&i.CustomerID,
-		&i.CustomerName,
-		&i.CustomerType,
+		&i.ID,
+		&i.Name,
 		&i.City,
 		&i.State,
-		&i.ZipCode,
+		&i.Zip,
+		&i.CustomerType,
 		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const listCustomers = `-- name: ListCustomers :many
-SELECT customer_id, customer_name, customer_type, city, state, zip_code, created_at FROM customer ORDER BY customer_name LIMIT $1 OFFSET $2
+SELECT id, name, city, state, zip, customer_type, created_at, updated_at FROM customers ORDER BY name LIMIT $1 OFFSET $2
 `
 
 type ListCustomersParams struct {
@@ -89,13 +97,14 @@ func (q *Queries) ListCustomers(ctx context.Context, arg ListCustomersParams) ([
 	for rows.Next() {
 		var i Customer
 		if err := rows.Scan(
-			&i.CustomerID,
-			&i.CustomerName,
-			&i.CustomerType,
+			&i.ID,
+			&i.Name,
 			&i.City,
 			&i.State,
-			&i.ZipCode,
+			&i.Zip,
+			&i.CustomerType,
 			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -111,9 +120,9 @@ func (q *Queries) ListCustomers(ctx context.Context, arg ListCustomersParams) ([
 }
 
 const searchCustomersByName = `-- name: SearchCustomersByName :many
-SELECT customer_id, customer_name, customer_type, city, state, zip_code, created_at FROM customer 
-WHERE customer_name ILIKE '%' || $1 || '%'
-ORDER BY customer_name
+SELECT id, name, city, state, zip, customer_type, created_at, updated_at FROM customers
+WHERE name ILIKE '%' || $1 || '%'
+ORDER BY name
 LIMIT $2
 `
 
@@ -132,13 +141,14 @@ func (q *Queries) SearchCustomersByName(ctx context.Context, arg SearchCustomers
 	for rows.Next() {
 		var i Customer
 		if err := rows.Scan(
-			&i.CustomerID,
-			&i.CustomerName,
-			&i.CustomerType,
+			&i.ID,
+			&i.Name,
 			&i.City,
 			&i.State,
-			&i.ZipCode,
+			&i.Zip,
+			&i.CustomerType,
 			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -154,45 +164,40 @@ func (q *Queries) SearchCustomersByName(ctx context.Context, arg SearchCustomers
 }
 
 const upsertCustomer = `-- name: UpsertCustomer :one
-INSERT INTO customer (customer_id, customer_name, customer_type, city, state, zip_code)
-VALUES ($1, $2, $3, $4, $5, $6)
-ON CONFLICT (customer_id) 
-DO UPDATE SET 
-    customer_name = EXCLUDED.customer_name,
-    customer_type = EXCLUDED.customer_type,
-    city = EXCLUDED.city,
-    state = EXCLUDED.state,
-    zip_code = EXCLUDED.zip_code
-RETURNING customer_id, customer_name, customer_type, city, state, zip_code, created_at
+INSERT INTO customers (id, name, city, state, zip, customer_type,created_at, updated_at)
+VALUES ($1, $2, $3, $4, $5, $6, NOW(),NOW())
+ON CONFLICT (id) DO NOTHING
+RETURNING id, name, city, state, zip, customer_type, created_at, updated_at
 `
 
 type UpsertCustomerParams struct {
-	CustomerID   int32          `json:"customer_id"`
-	CustomerName string         `json:"customer_name"`
-	CustomerType string         `json:"customer_type"`
+	ID           int32          `json:"id"`
+	Name         string         `json:"name"`
 	City         sql.NullString `json:"city"`
 	State        sql.NullString `json:"state"`
-	ZipCode      sql.NullString `json:"zip_code"`
+	Zip          sql.NullString `json:"zip"`
+	CustomerType sql.NullString `json:"customer_type"`
 }
 
 func (q *Queries) UpsertCustomer(ctx context.Context, arg UpsertCustomerParams) (Customer, error) {
 	row := q.db.QueryRowContext(ctx, upsertCustomer,
-		arg.CustomerID,
-		arg.CustomerName,
-		arg.CustomerType,
+		arg.ID,
+		arg.Name,
 		arg.City,
 		arg.State,
-		arg.ZipCode,
+		arg.Zip,
+		arg.CustomerType,
 	)
 	var i Customer
 	err := row.Scan(
-		&i.CustomerID,
-		&i.CustomerName,
-		&i.CustomerType,
+		&i.ID,
+		&i.Name,
 		&i.City,
 		&i.State,
-		&i.ZipCode,
+		&i.Zip,
+		&i.CustomerType,
 		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }

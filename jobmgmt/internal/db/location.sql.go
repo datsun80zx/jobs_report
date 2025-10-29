@@ -11,63 +11,74 @@ import (
 )
 
 const createLocation = `-- name: CreateLocation :one
-
-INSERT INTO location (customer_id, city, state, zip_code, street_address)
-VALUES ($1, $2, $3, $4, $5)
-RETURNING location_id, customer_id, city, state, zip_code, street_address
+INSERT INTO locations (id, name, city, state, zip, customer_id, created_at, updated_at)
+VALUES (
+    $1, 
+    $2,
+    $3,
+    $4,
+    $5,
+    $6,
+    NOW(),
+    NOW()
+)
+RETURNING id, name, city, state, zip, customer_id, created_at, updated_at
 `
 
 type CreateLocationParams struct {
-	CustomerID    int32          `json:"customer_id"`
-	City          sql.NullString `json:"city"`
-	State         sql.NullString `json:"state"`
-	ZipCode       sql.NullString `json:"zip_code"`
-	StreetAddress sql.NullString `json:"street_address"`
+	ID         int32          `json:"id"`
+	Name       string         `json:"name"`
+	City       sql.NullString `json:"city"`
+	State      sql.NullString `json:"state"`
+	Zip        sql.NullString `json:"zip"`
+	CustomerID int32          `json:"customer_id"`
 }
 
-// =====================================================
-// LOCATION QUERIES
-// =====================================================
 func (q *Queries) CreateLocation(ctx context.Context, arg CreateLocationParams) (Location, error) {
 	row := q.db.QueryRowContext(ctx, createLocation,
-		arg.CustomerID,
+		arg.ID,
+		arg.Name,
 		arg.City,
 		arg.State,
-		arg.ZipCode,
-		arg.StreetAddress,
+		arg.Zip,
+		arg.CustomerID,
 	)
 	var i Location
 	err := row.Scan(
-		&i.LocationID,
-		&i.CustomerID,
+		&i.ID,
+		&i.Name,
 		&i.City,
 		&i.State,
-		&i.ZipCode,
-		&i.StreetAddress,
+		&i.Zip,
+		&i.CustomerID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const getLocationByID = `-- name: GetLocationByID :one
-SELECT location_id, customer_id, city, state, zip_code, street_address FROM location WHERE location_id = $1
+SELECT id, name, city, state, zip, customer_id, created_at, updated_at FROM locations WHERE locations.id = $1
 `
 
-func (q *Queries) GetLocationByID(ctx context.Context, locationID int32) (Location, error) {
-	row := q.db.QueryRowContext(ctx, getLocationByID, locationID)
+func (q *Queries) GetLocationByID(ctx context.Context, id int32) (Location, error) {
+	row := q.db.QueryRowContext(ctx, getLocationByID, id)
 	var i Location
 	err := row.Scan(
-		&i.LocationID,
-		&i.CustomerID,
+		&i.ID,
+		&i.Name,
 		&i.City,
 		&i.State,
-		&i.ZipCode,
-		&i.StreetAddress,
+		&i.Zip,
+		&i.CustomerID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const getLocationsByCustomerID = `-- name: GetLocationsByCustomerID :many
-SELECT location_id, customer_id, city, state, zip_code, street_address FROM location WHERE customer_id = $1
+SELECT id, name, city, state, zip, customer_id, created_at, updated_at FROM locations WHERE locations.customer_id = $1
 `
 
 func (q *Queries) GetLocationsByCustomerID(ctx context.Context, customerID int32) ([]Location, error) {
@@ -80,12 +91,14 @@ func (q *Queries) GetLocationsByCustomerID(ctx context.Context, customerID int32
 	for rows.Next() {
 		var i Location
 		if err := rows.Scan(
-			&i.LocationID,
-			&i.CustomerID,
+			&i.ID,
+			&i.Name,
 			&i.City,
 			&i.State,
-			&i.ZipCode,
-			&i.StreetAddress,
+			&i.Zip,
+			&i.CustomerID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}

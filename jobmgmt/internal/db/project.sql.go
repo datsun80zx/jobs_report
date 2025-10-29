@@ -11,29 +11,45 @@ import (
 )
 
 const createProject = `-- name: CreateProject :one
-
-INSERT INTO project (project_name)
-VALUES ($1)
-RETURNING project_id, project_name, created_at
+INSERT INTO projects (id, summary, created_at, updated_at)
+VALUES (
+    $1,
+    $2,
+    NOW(),
+    NOW()
+)
+RETURNING id, summary, created_at, updated_at
 `
 
-// =====================================================
-// PROJECT QUERIES
-// =====================================================
-func (q *Queries) CreateProject(ctx context.Context, projectName sql.NullString) (Project, error) {
-	row := q.db.QueryRowContext(ctx, createProject, projectName)
+type CreateProjectParams struct {
+	ID      int32          `json:"id"`
+	Summary sql.NullString `json:"summary"`
+}
+
+func (q *Queries) CreateProject(ctx context.Context, arg CreateProjectParams) (Project, error) {
+	row := q.db.QueryRowContext(ctx, createProject, arg.ID, arg.Summary)
 	var i Project
-	err := row.Scan(&i.ProjectID, &i.ProjectName, &i.CreatedAt)
+	err := row.Scan(
+		&i.ID,
+		&i.Summary,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
 	return i, err
 }
 
 const getProjectByID = `-- name: GetProjectByID :one
-SELECT project_id, project_name, created_at FROM project WHERE project_id = $1
+SELECT id, summary, created_at, updated_at FROM projects WHERE projects.id = $1
 `
 
-func (q *Queries) GetProjectByID(ctx context.Context, projectID int32) (Project, error) {
-	row := q.db.QueryRowContext(ctx, getProjectByID, projectID)
+func (q *Queries) GetProjectByID(ctx context.Context, id int32) (Project, error) {
+	row := q.db.QueryRowContext(ctx, getProjectByID, id)
 	var i Project
-	err := row.Scan(&i.ProjectID, &i.ProjectName, &i.CreatedAt)
+	err := row.Scan(
+		&i.ID,
+		&i.Summary,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
 	return i, err
 }

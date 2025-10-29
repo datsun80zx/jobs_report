@@ -1,32 +1,32 @@
--- =====================================================
--- CUSTOMER QUERIES
--- =====================================================
-
 -- name: CreateCustomer :one
-INSERT INTO customer (customer_id, customer_name, customer_type, city, state, zip_code)
-VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO customers (id, name, city, state, zip, customer_type,created_at, updated_at)
+VALUES (
+    $1, 
+    $2, 
+    $3, 
+    $4, 
+    $5, 
+    $6,
+    NOW(),
+    NOW()
+)
 RETURNING *;
 
 -- name: GetCustomerByID :one
-SELECT * FROM customer WHERE customer_id = $1;
+SELECT * FROM customers 
+WHERE id = $1;
 
 -- name: UpsertCustomer :one
-INSERT INTO customer (customer_id, customer_name, customer_type, city, state, zip_code)
-VALUES ($1, $2, $3, $4, $5, $6)
-ON CONFLICT (customer_id) 
-DO UPDATE SET 
-    customer_name = EXCLUDED.customer_name,
-    customer_type = EXCLUDED.customer_type,
-    city = EXCLUDED.city,
-    state = EXCLUDED.state,
-    zip_code = EXCLUDED.zip_code
+INSERT INTO customers (id, name, city, state, zip, customer_type,created_at, updated_at)
+VALUES ($1, $2, $3, $4, $5, $6, NOW(),NOW())
+ON CONFLICT (id) DO NOTHING
 RETURNING *;
 
 -- name: ListCustomers :many
-SELECT * FROM customer ORDER BY customer_name LIMIT $1 OFFSET $2;
+SELECT * FROM customers ORDER BY name LIMIT $1 OFFSET $2;
 
 -- name: SearchCustomersByName :many
-SELECT * FROM customer 
-WHERE customer_name ILIKE '%' || $1 || '%'
-ORDER BY customer_name
+SELECT * FROM customers
+WHERE name ILIKE '%' || $1 || '%'
+ORDER BY name
 LIMIT $2;

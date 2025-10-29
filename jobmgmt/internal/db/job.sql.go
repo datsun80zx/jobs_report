@@ -9,62 +9,72 @@ import (
 	"context"
 	"database/sql"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const createJob = `-- name: CreateJob :one
-
-INSERT INTO job (
-    job_id, job_type_id, business_unit_id, customer_id, location_id,
-    project_id, job_campaign_id, call_campaign_id, job_status, priority,
-    summary, job_creation_date, job_schedule_date, job_completion_date,
-    scheduled_time, first_dispatch_date, hold_date, start_of_work_time,
-    end_of_work_time, booked_by_user_id, dispatched_by_user_id,
-    sold_by_technician_id, is_warranty, warranty_for_job_id,
-    is_recall, recall_for_job_id
-)
+INSERT INTO jobs (
+    id, job_type_id, business_unit_id, customer_id, location_id, project_id, job_campaign_id, call_campaign_id, job_status, job_priority, job_summary, job_creation_date, 
+    job_schedule_date, job_completion_date, assigned_tech_id, sold_tech_id, sold_bu_id, count_of_estimates, sold_estimate_id, campaign_category_id, invoice_id, opportunity_id,
+    is_warranty, warranty_of_job_id, is_recall, recall_of_job_id, is_converted, survey_score, dispatched_by_user_id, booked_by_user_id, job_id_of_created_lead, is_zero_cost,
+    scheduled_time, first_dispatch, hold_date, sold_date, start_time, end_time, primary_tech_id, first_response_time)
 VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
     $11, $12, $13, $14, $15, $16, $17, $18,
-    $19, $20, $21, $22, $23, $24, $25, $26
+    $19, $20, $21, $22, $23, $24, $25, $26, $27,
+    $28, $29, $30, $31, $32, $33, $34, $35, $36, 
+    $37, $38, $39, $40
 )
-RETURNING job_id, job_type_id, business_unit_id, customer_id, location_id, project_id, job_campaign_id, call_campaign_id, job_status, priority, summary, job_creation_date, job_schedule_date, job_completion_date, scheduled_time, first_dispatch_date, hold_date, start_of_work_time, end_of_work_time, booked_by_user_id, dispatched_by_user_id, sold_by_technician_id, is_warranty, warranty_for_job_id, is_recall, recall_for_job_id
+RETURNING id, job_type_id, business_unit_id, customer_id, location_id, project_id, job_campaign_id, call_campaign_id, job_status, job_priority, job_summary, job_creation_date, job_schedule_date, job_completion_date, assigned_tech_id, sold_tech_id, sold_bu_id, count_of_estimates, sold_estimate_id, campaign_category_id, invoice_id, opportunity_id, is_warranty, warranty_of_job_id, is_recall, recall_of_job_id, is_converted, survey_score, dispatched_by_user_id, booked_by_user_id, job_id_of_created_lead, is_zero_cost, scheduled_time, first_dispatch, hold_date, sold_date, start_time, end_time, primary_tech_id, first_response_time
 `
 
 type CreateJobParams struct {
-	JobID              int32          `json:"job_id"`
+	ID                 int32          `json:"id"`
 	JobTypeID          int32          `json:"job_type_id"`
 	BusinessUnitID     int32          `json:"business_unit_id"`
 	CustomerID         int32          `json:"customer_id"`
 	LocationID         int32          `json:"location_id"`
-	ProjectID          sql.NullInt32  `json:"project_id"`
-	JobCampaignID      sql.NullInt32  `json:"job_campaign_id"`
-	CallCampaignID     sql.NullInt32  `json:"call_campaign_id"`
+	ProjectID          int32          `json:"project_id"`
+	JobCampaignID      int32          `json:"job_campaign_id"`
+	CallCampaignID     int32          `json:"call_campaign_id"`
 	JobStatus          string         `json:"job_status"`
-	Priority           sql.NullString `json:"priority"`
-	Summary            sql.NullString `json:"summary"`
+	JobPriority        string         `json:"job_priority"`
+	JobSummary         sql.NullString `json:"job_summary"`
 	JobCreationDate    time.Time      `json:"job_creation_date"`
 	JobScheduleDate    sql.NullTime   `json:"job_schedule_date"`
 	JobCompletionDate  sql.NullTime   `json:"job_completion_date"`
-	ScheduledTime      sql.NullTime   `json:"scheduled_time"`
-	FirstDispatchDate  sql.NullTime   `json:"first_dispatch_date"`
-	HoldDate           sql.NullTime   `json:"hold_date"`
-	StartOfWorkTime    sql.NullTime   `json:"start_of_work_time"`
-	EndOfWorkTime      sql.NullTime   `json:"end_of_work_time"`
-	BookedByUserID     sql.NullInt32  `json:"booked_by_user_id"`
-	DispatchedByUserID sql.NullInt32  `json:"dispatched_by_user_id"`
-	SoldByTechnicianID sql.NullInt32  `json:"sold_by_technician_id"`
+	AssignedTechID     uuid.NullUUID  `json:"assigned_tech_id"`
+	SoldTechID         uuid.NullUUID  `json:"sold_tech_id"`
+	SoldBuID           sql.NullInt32  `json:"sold_bu_id"`
+	CountOfEstimates   sql.NullInt32  `json:"count_of_estimates"`
+	SoldEstimateID     sql.NullInt32  `json:"sold_estimate_id"`
+	CampaignCategoryID sql.NullInt32  `json:"campaign_category_id"`
+	InvoiceID          sql.NullInt32  `json:"invoice_id"`
+	OpportunityID      sql.NullInt32  `json:"opportunity_id"`
 	IsWarranty         sql.NullBool   `json:"is_warranty"`
-	WarrantyForJobID   sql.NullInt32  `json:"warranty_for_job_id"`
+	WarrantyOfJobID    sql.NullInt32  `json:"warranty_of_job_id"`
 	IsRecall           sql.NullBool   `json:"is_recall"`
-	RecallForJobID     sql.NullInt32  `json:"recall_for_job_id"`
+	RecallOfJobID      sql.NullInt32  `json:"recall_of_job_id"`
+	IsConverted        sql.NullBool   `json:"is_converted"`
+	SurveyScore        sql.NullInt32  `json:"survey_score"`
+	DispatchedByUserID uuid.NullUUID  `json:"dispatched_by_user_id"`
+	BookedByUserID     uuid.NullUUID  `json:"booked_by_user_id"`
+	JobIDOfCreatedLead sql.NullInt32  `json:"job_id_of_created_lead"`
+	IsZeroCost         sql.NullBool   `json:"is_zero_cost"`
+	ScheduledTime      sql.NullTime   `json:"scheduled_time"`
+	FirstDispatch      sql.NullTime   `json:"first_dispatch"`
+	HoldDate           sql.NullTime   `json:"hold_date"`
+	SoldDate           sql.NullTime   `json:"sold_date"`
+	StartTime          sql.NullTime   `json:"start_time"`
+	EndTime            sql.NullTime   `json:"end_time"`
+	PrimaryTechID      uuid.NullUUID  `json:"primary_tech_id"`
+	FirstResponseTime  sql.NullInt32  `json:"first_response_time"`
 }
 
-// =====================================================
-// JOB QUERIES
-// =====================================================
 func (q *Queries) CreateJob(ctx context.Context, arg CreateJobParams) (Job, error) {
 	row := q.db.QueryRowContext(ctx, createJob,
-		arg.JobID,
+		arg.ID,
 		arg.JobTypeID,
 		arg.BusinessUnitID,
 		arg.CustomerID,
@@ -73,27 +83,41 @@ func (q *Queries) CreateJob(ctx context.Context, arg CreateJobParams) (Job, erro
 		arg.JobCampaignID,
 		arg.CallCampaignID,
 		arg.JobStatus,
-		arg.Priority,
-		arg.Summary,
+		arg.JobPriority,
+		arg.JobSummary,
 		arg.JobCreationDate,
 		arg.JobScheduleDate,
 		arg.JobCompletionDate,
-		arg.ScheduledTime,
-		arg.FirstDispatchDate,
-		arg.HoldDate,
-		arg.StartOfWorkTime,
-		arg.EndOfWorkTime,
-		arg.BookedByUserID,
-		arg.DispatchedByUserID,
-		arg.SoldByTechnicianID,
+		arg.AssignedTechID,
+		arg.SoldTechID,
+		arg.SoldBuID,
+		arg.CountOfEstimates,
+		arg.SoldEstimateID,
+		arg.CampaignCategoryID,
+		arg.InvoiceID,
+		arg.OpportunityID,
 		arg.IsWarranty,
-		arg.WarrantyForJobID,
+		arg.WarrantyOfJobID,
 		arg.IsRecall,
-		arg.RecallForJobID,
+		arg.RecallOfJobID,
+		arg.IsConverted,
+		arg.SurveyScore,
+		arg.DispatchedByUserID,
+		arg.BookedByUserID,
+		arg.JobIDOfCreatedLead,
+		arg.IsZeroCost,
+		arg.ScheduledTime,
+		arg.FirstDispatch,
+		arg.HoldDate,
+		arg.SoldDate,
+		arg.StartTime,
+		arg.EndTime,
+		arg.PrimaryTechID,
+		arg.FirstResponseTime,
 	)
 	var i Job
 	err := row.Scan(
-		&i.JobID,
+		&i.ID,
 		&i.JobTypeID,
 		&i.BusinessUnitID,
 		&i.CustomerID,
@@ -102,105 +126,50 @@ func (q *Queries) CreateJob(ctx context.Context, arg CreateJobParams) (Job, erro
 		&i.JobCampaignID,
 		&i.CallCampaignID,
 		&i.JobStatus,
-		&i.Priority,
-		&i.Summary,
+		&i.JobPriority,
+		&i.JobSummary,
 		&i.JobCreationDate,
 		&i.JobScheduleDate,
 		&i.JobCompletionDate,
-		&i.ScheduledTime,
-		&i.FirstDispatchDate,
-		&i.HoldDate,
-		&i.StartOfWorkTime,
-		&i.EndOfWorkTime,
-		&i.BookedByUserID,
-		&i.DispatchedByUserID,
-		&i.SoldByTechnicianID,
+		&i.AssignedTechID,
+		&i.SoldTechID,
+		&i.SoldBuID,
+		&i.CountOfEstimates,
+		&i.SoldEstimateID,
+		&i.CampaignCategoryID,
+		&i.InvoiceID,
+		&i.OpportunityID,
 		&i.IsWarranty,
-		&i.WarrantyForJobID,
+		&i.WarrantyOfJobID,
 		&i.IsRecall,
-		&i.RecallForJobID,
+		&i.RecallOfJobID,
+		&i.IsConverted,
+		&i.SurveyScore,
+		&i.DispatchedByUserID,
+		&i.BookedByUserID,
+		&i.JobIDOfCreatedLead,
+		&i.IsZeroCost,
+		&i.ScheduledTime,
+		&i.FirstDispatch,
+		&i.HoldDate,
+		&i.SoldDate,
+		&i.StartTime,
+		&i.EndTime,
+		&i.PrimaryTechID,
+		&i.FirstResponseTime,
 	)
 	return i, err
-}
-
-const createJobTechnician = `-- name: CreateJobTechnician :one
-
-INSERT INTO job_technician (job_id, technician_id, split_percentage, assignment_order, hours_worked)
-VALUES ($1, $2, $3, $4, $5)
-RETURNING job_technician_id, job_id, technician_id, split_percentage, assignment_order, hours_worked
-`
-
-type CreateJobTechnicianParams struct {
-	JobID           int32          `json:"job_id"`
-	TechnicianID    int32          `json:"technician_id"`
-	SplitPercentage string         `json:"split_percentage"`
-	AssignmentOrder int32          `json:"assignment_order"`
-	HoursWorked     sql.NullString `json:"hours_worked"`
-}
-
-// =====================================================
-// JOB TECHNICIAN QUERIES
-// =====================================================
-func (q *Queries) CreateJobTechnician(ctx context.Context, arg CreateJobTechnicianParams) (JobTechnician, error) {
-	row := q.db.QueryRowContext(ctx, createJobTechnician,
-		arg.JobID,
-		arg.TechnicianID,
-		arg.SplitPercentage,
-		arg.AssignmentOrder,
-		arg.HoursWorked,
-	)
-	var i JobTechnician
-	err := row.Scan(
-		&i.JobTechnicianID,
-		&i.JobID,
-		&i.TechnicianID,
-		&i.SplitPercentage,
-		&i.AssignmentOrder,
-		&i.HoursWorked,
-	)
-	return i, err
-}
-
-const createJobType = `-- name: CreateJobType :one
-
-INSERT INTO job_type (job_type_name, sold_threshold)
-VALUES ($1, $2)
-RETURNING job_type_id, job_type_name, sold_threshold
-`
-
-type CreateJobTypeParams struct {
-	JobTypeName   string         `json:"job_type_name"`
-	SoldThreshold sql.NullString `json:"sold_threshold"`
-}
-
-// =====================================================
-// JOB TYPE QUERIES
-// =====================================================
-func (q *Queries) CreateJobType(ctx context.Context, arg CreateJobTypeParams) (JobType, error) {
-	row := q.db.QueryRowContext(ctx, createJobType, arg.JobTypeName, arg.SoldThreshold)
-	var i JobType
-	err := row.Scan(&i.JobTypeID, &i.JobTypeName, &i.SoldThreshold)
-	return i, err
-}
-
-const deleteJobTechnicians = `-- name: DeleteJobTechnicians :exec
-DELETE FROM job_technician WHERE job_id = $1
-`
-
-func (q *Queries) DeleteJobTechnicians(ctx context.Context, jobID int32) error {
-	_, err := q.db.ExecContext(ctx, deleteJobTechnicians, jobID)
-	return err
 }
 
 const getJobByID = `-- name: GetJobByID :one
-SELECT job_id, job_type_id, business_unit_id, customer_id, location_id, project_id, job_campaign_id, call_campaign_id, job_status, priority, summary, job_creation_date, job_schedule_date, job_completion_date, scheduled_time, first_dispatch_date, hold_date, start_of_work_time, end_of_work_time, booked_by_user_id, dispatched_by_user_id, sold_by_technician_id, is_warranty, warranty_for_job_id, is_recall, recall_for_job_id FROM job WHERE job_id = $1
+SELECT id, job_type_id, business_unit_id, customer_id, location_id, project_id, job_campaign_id, call_campaign_id, job_status, job_priority, job_summary, job_creation_date, job_schedule_date, job_completion_date, assigned_tech_id, sold_tech_id, sold_bu_id, count_of_estimates, sold_estimate_id, campaign_category_id, invoice_id, opportunity_id, is_warranty, warranty_of_job_id, is_recall, recall_of_job_id, is_converted, survey_score, dispatched_by_user_id, booked_by_user_id, job_id_of_created_lead, is_zero_cost, scheduled_time, first_dispatch, hold_date, sold_date, start_time, end_time, primary_tech_id, first_response_time FROM jobs WHERE id = $1
 `
 
-func (q *Queries) GetJobByID(ctx context.Context, jobID int32) (Job, error) {
-	row := q.db.QueryRowContext(ctx, getJobByID, jobID)
+func (q *Queries) GetJobByID(ctx context.Context, id int32) (Job, error) {
+	row := q.db.QueryRowContext(ctx, getJobByID, id)
 	var i Job
 	err := row.Scan(
-		&i.JobID,
+		&i.ID,
 		&i.JobTypeID,
 		&i.BusinessUnitID,
 		&i.CustomerID,
@@ -209,132 +178,43 @@ func (q *Queries) GetJobByID(ctx context.Context, jobID int32) (Job, error) {
 		&i.JobCampaignID,
 		&i.CallCampaignID,
 		&i.JobStatus,
-		&i.Priority,
-		&i.Summary,
+		&i.JobPriority,
+		&i.JobSummary,
 		&i.JobCreationDate,
 		&i.JobScheduleDate,
 		&i.JobCompletionDate,
-		&i.ScheduledTime,
-		&i.FirstDispatchDate,
-		&i.HoldDate,
-		&i.StartOfWorkTime,
-		&i.EndOfWorkTime,
-		&i.BookedByUserID,
-		&i.DispatchedByUserID,
-		&i.SoldByTechnicianID,
+		&i.AssignedTechID,
+		&i.SoldTechID,
+		&i.SoldBuID,
+		&i.CountOfEstimates,
+		&i.SoldEstimateID,
+		&i.CampaignCategoryID,
+		&i.InvoiceID,
+		&i.OpportunityID,
 		&i.IsWarranty,
-		&i.WarrantyForJobID,
+		&i.WarrantyOfJobID,
 		&i.IsRecall,
-		&i.RecallForJobID,
+		&i.RecallOfJobID,
+		&i.IsConverted,
+		&i.SurveyScore,
+		&i.DispatchedByUserID,
+		&i.BookedByUserID,
+		&i.JobIDOfCreatedLead,
+		&i.IsZeroCost,
+		&i.ScheduledTime,
+		&i.FirstDispatch,
+		&i.HoldDate,
+		&i.SoldDate,
+		&i.StartTime,
+		&i.EndTime,
+		&i.PrimaryTechID,
+		&i.FirstResponseTime,
 	)
 	return i, err
 }
 
-const getJobTechniciansByJobID = `-- name: GetJobTechniciansByJobID :many
-SELECT 
-    jt.job_technician_id, jt.job_id, jt.technician_id, jt.split_percentage, jt.assignment_order, jt.hours_worked,
-    t.technician_name,
-    t.email
-FROM job_technician jt
-JOIN technician t ON jt.technician_id = t.technician_id
-WHERE jt.job_id = $1
-ORDER BY jt.assignment_order
-`
-
-type GetJobTechniciansByJobIDRow struct {
-	JobTechnicianID int32          `json:"job_technician_id"`
-	JobID           int32          `json:"job_id"`
-	TechnicianID    int32          `json:"technician_id"`
-	SplitPercentage string         `json:"split_percentage"`
-	AssignmentOrder int32          `json:"assignment_order"`
-	HoursWorked     sql.NullString `json:"hours_worked"`
-	TechnicianName  string         `json:"technician_name"`
-	Email           sql.NullString `json:"email"`
-}
-
-func (q *Queries) GetJobTechniciansByJobID(ctx context.Context, jobID int32) ([]GetJobTechniciansByJobIDRow, error) {
-	rows, err := q.db.QueryContext(ctx, getJobTechniciansByJobID, jobID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GetJobTechniciansByJobIDRow
-	for rows.Next() {
-		var i GetJobTechniciansByJobIDRow
-		if err := rows.Scan(
-			&i.JobTechnicianID,
-			&i.JobID,
-			&i.TechnicianID,
-			&i.SplitPercentage,
-			&i.AssignmentOrder,
-			&i.HoursWorked,
-			&i.TechnicianName,
-			&i.Email,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getJobTypeByID = `-- name: GetJobTypeByID :one
-SELECT job_type_id, job_type_name, sold_threshold FROM job_type WHERE job_type_id = $1
-`
-
-func (q *Queries) GetJobTypeByID(ctx context.Context, jobTypeID int32) (JobType, error) {
-	row := q.db.QueryRowContext(ctx, getJobTypeByID, jobTypeID)
-	var i JobType
-	err := row.Scan(&i.JobTypeID, &i.JobTypeName, &i.SoldThreshold)
-	return i, err
-}
-
-const getJobTypeByName = `-- name: GetJobTypeByName :one
-SELECT job_type_id, job_type_name, sold_threshold FROM job_type WHERE job_type_name = $1
-`
-
-func (q *Queries) GetJobTypeByName(ctx context.Context, jobTypeName string) (JobType, error) {
-	row := q.db.QueryRowContext(ctx, getJobTypeByName, jobTypeName)
-	var i JobType
-	err := row.Scan(&i.JobTypeID, &i.JobTypeName, &i.SoldThreshold)
-	return i, err
-}
-
-const listJobTypes = `-- name: ListJobTypes :many
-SELECT job_type_id, job_type_name, sold_threshold FROM job_type ORDER BY job_type_name
-`
-
-func (q *Queries) ListJobTypes(ctx context.Context) ([]JobType, error) {
-	rows, err := q.db.QueryContext(ctx, listJobTypes)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []JobType
-	for rows.Next() {
-		var i JobType
-		if err := rows.Scan(&i.JobTypeID, &i.JobTypeName, &i.SoldThreshold); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const listJobsByCustomerID = `-- name: ListJobsByCustomerID :many
-SELECT job_id, job_type_id, business_unit_id, customer_id, location_id, project_id, job_campaign_id, call_campaign_id, job_status, priority, summary, job_creation_date, job_schedule_date, job_completion_date, scheduled_time, first_dispatch_date, hold_date, start_of_work_time, end_of_work_time, booked_by_user_id, dispatched_by_user_id, sold_by_technician_id, is_warranty, warranty_for_job_id, is_recall, recall_for_job_id FROM job 
+SELECT id, job_type_id, business_unit_id, customer_id, location_id, project_id, job_campaign_id, call_campaign_id, job_status, job_priority, job_summary, job_creation_date, job_schedule_date, job_completion_date, assigned_tech_id, sold_tech_id, sold_bu_id, count_of_estimates, sold_estimate_id, campaign_category_id, invoice_id, opportunity_id, is_warranty, warranty_of_job_id, is_recall, recall_of_job_id, is_converted, survey_score, dispatched_by_user_id, booked_by_user_id, job_id_of_created_lead, is_zero_cost, scheduled_time, first_dispatch, hold_date, sold_date, start_time, end_time, primary_tech_id, first_response_time FROM jobs 
 WHERE customer_id = $1
 ORDER BY job_creation_date DESC
 `
@@ -349,7 +229,7 @@ func (q *Queries) ListJobsByCustomerID(ctx context.Context, customerID int32) ([
 	for rows.Next() {
 		var i Job
 		if err := rows.Scan(
-			&i.JobID,
+			&i.ID,
 			&i.JobTypeID,
 			&i.BusinessUnitID,
 			&i.CustomerID,
@@ -358,23 +238,37 @@ func (q *Queries) ListJobsByCustomerID(ctx context.Context, customerID int32) ([
 			&i.JobCampaignID,
 			&i.CallCampaignID,
 			&i.JobStatus,
-			&i.Priority,
-			&i.Summary,
+			&i.JobPriority,
+			&i.JobSummary,
 			&i.JobCreationDate,
 			&i.JobScheduleDate,
 			&i.JobCompletionDate,
-			&i.ScheduledTime,
-			&i.FirstDispatchDate,
-			&i.HoldDate,
-			&i.StartOfWorkTime,
-			&i.EndOfWorkTime,
-			&i.BookedByUserID,
-			&i.DispatchedByUserID,
-			&i.SoldByTechnicianID,
+			&i.AssignedTechID,
+			&i.SoldTechID,
+			&i.SoldBuID,
+			&i.CountOfEstimates,
+			&i.SoldEstimateID,
+			&i.CampaignCategoryID,
+			&i.InvoiceID,
+			&i.OpportunityID,
 			&i.IsWarranty,
-			&i.WarrantyForJobID,
+			&i.WarrantyOfJobID,
 			&i.IsRecall,
-			&i.RecallForJobID,
+			&i.RecallOfJobID,
+			&i.IsConverted,
+			&i.SurveyScore,
+			&i.DispatchedByUserID,
+			&i.BookedByUserID,
+			&i.JobIDOfCreatedLead,
+			&i.IsZeroCost,
+			&i.ScheduledTime,
+			&i.FirstDispatch,
+			&i.HoldDate,
+			&i.SoldDate,
+			&i.StartTime,
+			&i.EndTime,
+			&i.PrimaryTechID,
+			&i.FirstResponseTime,
 		); err != nil {
 			return nil, err
 		}
@@ -390,7 +284,7 @@ func (q *Queries) ListJobsByCustomerID(ctx context.Context, customerID int32) ([
 }
 
 const listJobsByDateRange = `-- name: ListJobsByDateRange :many
-SELECT job_id, job_type_id, business_unit_id, customer_id, location_id, project_id, job_campaign_id, call_campaign_id, job_status, priority, summary, job_creation_date, job_schedule_date, job_completion_date, scheduled_time, first_dispatch_date, hold_date, start_of_work_time, end_of_work_time, booked_by_user_id, dispatched_by_user_id, sold_by_technician_id, is_warranty, warranty_for_job_id, is_recall, recall_for_job_id FROM job
+SELECT id, job_type_id, business_unit_id, customer_id, location_id, project_id, job_campaign_id, call_campaign_id, job_status, job_priority, job_summary, job_creation_date, job_schedule_date, job_completion_date, assigned_tech_id, sold_tech_id, sold_bu_id, count_of_estimates, sold_estimate_id, campaign_category_id, invoice_id, opportunity_id, is_warranty, warranty_of_job_id, is_recall, recall_of_job_id, is_converted, survey_score, dispatched_by_user_id, booked_by_user_id, job_id_of_created_lead, is_zero_cost, scheduled_time, first_dispatch, hold_date, sold_date, start_time, end_time, primary_tech_id, first_response_time FROM jobs
 WHERE job_creation_date BETWEEN $1 AND $2
 ORDER BY job_creation_date DESC
 LIMIT $3 OFFSET $4
@@ -418,7 +312,7 @@ func (q *Queries) ListJobsByDateRange(ctx context.Context, arg ListJobsByDateRan
 	for rows.Next() {
 		var i Job
 		if err := rows.Scan(
-			&i.JobID,
+			&i.ID,
 			&i.JobTypeID,
 			&i.BusinessUnitID,
 			&i.CustomerID,
@@ -427,23 +321,37 @@ func (q *Queries) ListJobsByDateRange(ctx context.Context, arg ListJobsByDateRan
 			&i.JobCampaignID,
 			&i.CallCampaignID,
 			&i.JobStatus,
-			&i.Priority,
-			&i.Summary,
+			&i.JobPriority,
+			&i.JobSummary,
 			&i.JobCreationDate,
 			&i.JobScheduleDate,
 			&i.JobCompletionDate,
-			&i.ScheduledTime,
-			&i.FirstDispatchDate,
-			&i.HoldDate,
-			&i.StartOfWorkTime,
-			&i.EndOfWorkTime,
-			&i.BookedByUserID,
-			&i.DispatchedByUserID,
-			&i.SoldByTechnicianID,
+			&i.AssignedTechID,
+			&i.SoldTechID,
+			&i.SoldBuID,
+			&i.CountOfEstimates,
+			&i.SoldEstimateID,
+			&i.CampaignCategoryID,
+			&i.InvoiceID,
+			&i.OpportunityID,
 			&i.IsWarranty,
-			&i.WarrantyForJobID,
+			&i.WarrantyOfJobID,
 			&i.IsRecall,
-			&i.RecallForJobID,
+			&i.RecallOfJobID,
+			&i.IsConverted,
+			&i.SurveyScore,
+			&i.DispatchedByUserID,
+			&i.BookedByUserID,
+			&i.JobIDOfCreatedLead,
+			&i.IsZeroCost,
+			&i.ScheduledTime,
+			&i.FirstDispatch,
+			&i.HoldDate,
+			&i.SoldDate,
+			&i.StartTime,
+			&i.EndTime,
+			&i.PrimaryTechID,
+			&i.FirstResponseTime,
 		); err != nil {
 			return nil, err
 		}
@@ -459,7 +367,7 @@ func (q *Queries) ListJobsByDateRange(ctx context.Context, arg ListJobsByDateRan
 }
 
 const listJobsByStatus = `-- name: ListJobsByStatus :many
-SELECT job_id, job_type_id, business_unit_id, customer_id, location_id, project_id, job_campaign_id, call_campaign_id, job_status, priority, summary, job_creation_date, job_schedule_date, job_completion_date, scheduled_time, first_dispatch_date, hold_date, start_of_work_time, end_of_work_time, booked_by_user_id, dispatched_by_user_id, sold_by_technician_id, is_warranty, warranty_for_job_id, is_recall, recall_for_job_id FROM job 
+SELECT id, job_type_id, business_unit_id, customer_id, location_id, project_id, job_campaign_id, call_campaign_id, job_status, job_priority, job_summary, job_creation_date, job_schedule_date, job_completion_date, assigned_tech_id, sold_tech_id, sold_bu_id, count_of_estimates, sold_estimate_id, campaign_category_id, invoice_id, opportunity_id, is_warranty, warranty_of_job_id, is_recall, recall_of_job_id, is_converted, survey_score, dispatched_by_user_id, booked_by_user_id, job_id_of_created_lead, is_zero_cost, scheduled_time, first_dispatch, hold_date, sold_date, start_time, end_time, primary_tech_id, first_response_time FROM jobs 
 WHERE job_status = $1
 ORDER BY job_creation_date DESC
 LIMIT $2 OFFSET $3
@@ -481,7 +389,7 @@ func (q *Queries) ListJobsByStatus(ctx context.Context, arg ListJobsByStatusPara
 	for rows.Next() {
 		var i Job
 		if err := rows.Scan(
-			&i.JobID,
+			&i.ID,
 			&i.JobTypeID,
 			&i.BusinessUnitID,
 			&i.CustomerID,
@@ -490,23 +398,37 @@ func (q *Queries) ListJobsByStatus(ctx context.Context, arg ListJobsByStatusPara
 			&i.JobCampaignID,
 			&i.CallCampaignID,
 			&i.JobStatus,
-			&i.Priority,
-			&i.Summary,
+			&i.JobPriority,
+			&i.JobSummary,
 			&i.JobCreationDate,
 			&i.JobScheduleDate,
 			&i.JobCompletionDate,
-			&i.ScheduledTime,
-			&i.FirstDispatchDate,
-			&i.HoldDate,
-			&i.StartOfWorkTime,
-			&i.EndOfWorkTime,
-			&i.BookedByUserID,
-			&i.DispatchedByUserID,
-			&i.SoldByTechnicianID,
+			&i.AssignedTechID,
+			&i.SoldTechID,
+			&i.SoldBuID,
+			&i.CountOfEstimates,
+			&i.SoldEstimateID,
+			&i.CampaignCategoryID,
+			&i.InvoiceID,
+			&i.OpportunityID,
 			&i.IsWarranty,
-			&i.WarrantyForJobID,
+			&i.WarrantyOfJobID,
 			&i.IsRecall,
-			&i.RecallForJobID,
+			&i.RecallOfJobID,
+			&i.IsConverted,
+			&i.SurveyScore,
+			&i.DispatchedByUserID,
+			&i.BookedByUserID,
+			&i.JobIDOfCreatedLead,
+			&i.IsZeroCost,
+			&i.ScheduledTime,
+			&i.FirstDispatch,
+			&i.HoldDate,
+			&i.SoldDate,
+			&i.StartTime,
+			&i.EndTime,
+			&i.PrimaryTechID,
+			&i.FirstResponseTime,
 		); err != nil {
 			return nil, err
 		}
@@ -522,99 +444,86 @@ func (q *Queries) ListJobsByStatus(ctx context.Context, arg ListJobsByStatusPara
 }
 
 const updateJobStatus = `-- name: UpdateJobStatus :exec
-UPDATE job 
+UPDATE jobs
 SET job_status = $2, job_completion_date = $3
-WHERE job_id = $1
+WHERE id = $1
 `
 
 type UpdateJobStatusParams struct {
-	JobID             int32        `json:"job_id"`
+	ID                int32        `json:"id"`
 	JobStatus         string       `json:"job_status"`
 	JobCompletionDate sql.NullTime `json:"job_completion_date"`
 }
 
 func (q *Queries) UpdateJobStatus(ctx context.Context, arg UpdateJobStatusParams) error {
-	_, err := q.db.ExecContext(ctx, updateJobStatus, arg.JobID, arg.JobStatus, arg.JobCompletionDate)
+	_, err := q.db.ExecContext(ctx, updateJobStatus, arg.ID, arg.JobStatus, arg.JobCompletionDate)
 	return err
 }
 
 const upsertJob = `-- name: UpsertJob :one
-INSERT INTO job (
-    job_id, job_type_id, business_unit_id, customer_id, location_id,
-    project_id, job_campaign_id, call_campaign_id, job_status, priority,
-    summary, job_creation_date, job_schedule_date, job_completion_date,
-    scheduled_time, first_dispatch_date, hold_date, start_of_work_time,
-    end_of_work_time, booked_by_user_id, dispatched_by_user_id,
-    sold_by_technician_id, is_warranty, warranty_for_job_id,
-    is_recall, recall_for_job_id
+INSERT INTO jobs (
+    id, job_type_id, business_unit_id, customer_id, location_id, project_id, job_campaign_id, call_campaign_id, job_status, job_priority, job_summary, job_creation_date, 
+    job_schedule_date, job_completion_date, assigned_tech_id, sold_tech_id, sold_bu_id, count_of_estimates, sold_estimate_id, campaign_category_id, invoice_id, opportunity_id,
+    is_warranty, warranty_of_job_id, is_recall, recall_of_job_id, is_converted, survey_score, dispatched_by_user_id, booked_by_user_id, job_id_of_created_lead, is_zero_cost,
+    scheduled_time, first_dispatch, hold_date, sold_date, start_time, end_time, primary_tech_id, first_response_time
 )
 VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
     $11, $12, $13, $14, $15, $16, $17, $18,
-    $19, $20, $21, $22, $23, $24, $25, $26
+    $19, $20, $21, $22, $23, $24, $25, $26, $27,
+    $28, $29, $30, $31, $32, $33, $34, $35, $36, 
+    $37, $38, $39, $40
 )
-ON CONFLICT (job_id)
-DO UPDATE SET
-    job_type_id = EXCLUDED.job_type_id,
-    business_unit_id = EXCLUDED.business_unit_id,
-    customer_id = EXCLUDED.customer_id,
-    location_id = EXCLUDED.location_id,
-    project_id = EXCLUDED.project_id,
-    job_campaign_id = EXCLUDED.job_campaign_id,
-    call_campaign_id = EXCLUDED.call_campaign_id,
-    job_status = EXCLUDED.job_status,
-    priority = EXCLUDED.priority,
-    summary = EXCLUDED.summary,
-    job_creation_date = EXCLUDED.job_creation_date,
-    job_schedule_date = EXCLUDED.job_schedule_date,
-    job_completion_date = EXCLUDED.job_completion_date,
-    scheduled_time = EXCLUDED.scheduled_time,
-    first_dispatch_date = EXCLUDED.first_dispatch_date,
-    hold_date = EXCLUDED.hold_date,
-    start_of_work_time = EXCLUDED.start_of_work_time,
-    end_of_work_time = EXCLUDED.end_of_work_time,
-    booked_by_user_id = EXCLUDED.booked_by_user_id,
-    dispatched_by_user_id = EXCLUDED.dispatched_by_user_id,
-    sold_by_technician_id = EXCLUDED.sold_by_technician_id,
-    is_warranty = EXCLUDED.is_warranty,
-    warranty_for_job_id = EXCLUDED.warranty_for_job_id,
-    is_recall = EXCLUDED.is_recall,
-    recall_for_job_id = EXCLUDED.recall_for_job_id
-RETURNING job_id, job_type_id, business_unit_id, customer_id, location_id, project_id, job_campaign_id, call_campaign_id, job_status, priority, summary, job_creation_date, job_schedule_date, job_completion_date, scheduled_time, first_dispatch_date, hold_date, start_of_work_time, end_of_work_time, booked_by_user_id, dispatched_by_user_id, sold_by_technician_id, is_warranty, warranty_for_job_id, is_recall, recall_for_job_id
+ON CONFLICT (id) DO NOTHING 
+RETURNING id, job_type_id, business_unit_id, customer_id, location_id, project_id, job_campaign_id, call_campaign_id, job_status, job_priority, job_summary, job_creation_date, job_schedule_date, job_completion_date, assigned_tech_id, sold_tech_id, sold_bu_id, count_of_estimates, sold_estimate_id, campaign_category_id, invoice_id, opportunity_id, is_warranty, warranty_of_job_id, is_recall, recall_of_job_id, is_converted, survey_score, dispatched_by_user_id, booked_by_user_id, job_id_of_created_lead, is_zero_cost, scheduled_time, first_dispatch, hold_date, sold_date, start_time, end_time, primary_tech_id, first_response_time
 `
 
 type UpsertJobParams struct {
-	JobID              int32          `json:"job_id"`
+	ID                 int32          `json:"id"`
 	JobTypeID          int32          `json:"job_type_id"`
 	BusinessUnitID     int32          `json:"business_unit_id"`
 	CustomerID         int32          `json:"customer_id"`
 	LocationID         int32          `json:"location_id"`
-	ProjectID          sql.NullInt32  `json:"project_id"`
-	JobCampaignID      sql.NullInt32  `json:"job_campaign_id"`
-	CallCampaignID     sql.NullInt32  `json:"call_campaign_id"`
+	ProjectID          int32          `json:"project_id"`
+	JobCampaignID      int32          `json:"job_campaign_id"`
+	CallCampaignID     int32          `json:"call_campaign_id"`
 	JobStatus          string         `json:"job_status"`
-	Priority           sql.NullString `json:"priority"`
-	Summary            sql.NullString `json:"summary"`
+	JobPriority        string         `json:"job_priority"`
+	JobSummary         sql.NullString `json:"job_summary"`
 	JobCreationDate    time.Time      `json:"job_creation_date"`
 	JobScheduleDate    sql.NullTime   `json:"job_schedule_date"`
 	JobCompletionDate  sql.NullTime   `json:"job_completion_date"`
-	ScheduledTime      sql.NullTime   `json:"scheduled_time"`
-	FirstDispatchDate  sql.NullTime   `json:"first_dispatch_date"`
-	HoldDate           sql.NullTime   `json:"hold_date"`
-	StartOfWorkTime    sql.NullTime   `json:"start_of_work_time"`
-	EndOfWorkTime      sql.NullTime   `json:"end_of_work_time"`
-	BookedByUserID     sql.NullInt32  `json:"booked_by_user_id"`
-	DispatchedByUserID sql.NullInt32  `json:"dispatched_by_user_id"`
-	SoldByTechnicianID sql.NullInt32  `json:"sold_by_technician_id"`
+	AssignedTechID     uuid.NullUUID  `json:"assigned_tech_id"`
+	SoldTechID         uuid.NullUUID  `json:"sold_tech_id"`
+	SoldBuID           sql.NullInt32  `json:"sold_bu_id"`
+	CountOfEstimates   sql.NullInt32  `json:"count_of_estimates"`
+	SoldEstimateID     sql.NullInt32  `json:"sold_estimate_id"`
+	CampaignCategoryID sql.NullInt32  `json:"campaign_category_id"`
+	InvoiceID          sql.NullInt32  `json:"invoice_id"`
+	OpportunityID      sql.NullInt32  `json:"opportunity_id"`
 	IsWarranty         sql.NullBool   `json:"is_warranty"`
-	WarrantyForJobID   sql.NullInt32  `json:"warranty_for_job_id"`
+	WarrantyOfJobID    sql.NullInt32  `json:"warranty_of_job_id"`
 	IsRecall           sql.NullBool   `json:"is_recall"`
-	RecallForJobID     sql.NullInt32  `json:"recall_for_job_id"`
+	RecallOfJobID      sql.NullInt32  `json:"recall_of_job_id"`
+	IsConverted        sql.NullBool   `json:"is_converted"`
+	SurveyScore        sql.NullInt32  `json:"survey_score"`
+	DispatchedByUserID uuid.NullUUID  `json:"dispatched_by_user_id"`
+	BookedByUserID     uuid.NullUUID  `json:"booked_by_user_id"`
+	JobIDOfCreatedLead sql.NullInt32  `json:"job_id_of_created_lead"`
+	IsZeroCost         sql.NullBool   `json:"is_zero_cost"`
+	ScheduledTime      sql.NullTime   `json:"scheduled_time"`
+	FirstDispatch      sql.NullTime   `json:"first_dispatch"`
+	HoldDate           sql.NullTime   `json:"hold_date"`
+	SoldDate           sql.NullTime   `json:"sold_date"`
+	StartTime          sql.NullTime   `json:"start_time"`
+	EndTime            sql.NullTime   `json:"end_time"`
+	PrimaryTechID      uuid.NullUUID  `json:"primary_tech_id"`
+	FirstResponseTime  sql.NullInt32  `json:"first_response_time"`
 }
 
 func (q *Queries) UpsertJob(ctx context.Context, arg UpsertJobParams) (Job, error) {
 	row := q.db.QueryRowContext(ctx, upsertJob,
-		arg.JobID,
+		arg.ID,
 		arg.JobTypeID,
 		arg.BusinessUnitID,
 		arg.CustomerID,
@@ -623,27 +532,41 @@ func (q *Queries) UpsertJob(ctx context.Context, arg UpsertJobParams) (Job, erro
 		arg.JobCampaignID,
 		arg.CallCampaignID,
 		arg.JobStatus,
-		arg.Priority,
-		arg.Summary,
+		arg.JobPriority,
+		arg.JobSummary,
 		arg.JobCreationDate,
 		arg.JobScheduleDate,
 		arg.JobCompletionDate,
-		arg.ScheduledTime,
-		arg.FirstDispatchDate,
-		arg.HoldDate,
-		arg.StartOfWorkTime,
-		arg.EndOfWorkTime,
-		arg.BookedByUserID,
-		arg.DispatchedByUserID,
-		arg.SoldByTechnicianID,
+		arg.AssignedTechID,
+		arg.SoldTechID,
+		arg.SoldBuID,
+		arg.CountOfEstimates,
+		arg.SoldEstimateID,
+		arg.CampaignCategoryID,
+		arg.InvoiceID,
+		arg.OpportunityID,
 		arg.IsWarranty,
-		arg.WarrantyForJobID,
+		arg.WarrantyOfJobID,
 		arg.IsRecall,
-		arg.RecallForJobID,
+		arg.RecallOfJobID,
+		arg.IsConverted,
+		arg.SurveyScore,
+		arg.DispatchedByUserID,
+		arg.BookedByUserID,
+		arg.JobIDOfCreatedLead,
+		arg.IsZeroCost,
+		arg.ScheduledTime,
+		arg.FirstDispatch,
+		arg.HoldDate,
+		arg.SoldDate,
+		arg.StartTime,
+		arg.EndTime,
+		arg.PrimaryTechID,
+		arg.FirstResponseTime,
 	)
 	var i Job
 	err := row.Scan(
-		&i.JobID,
+		&i.ID,
 		&i.JobTypeID,
 		&i.BusinessUnitID,
 		&i.CustomerID,
@@ -652,82 +575,37 @@ func (q *Queries) UpsertJob(ctx context.Context, arg UpsertJobParams) (Job, erro
 		&i.JobCampaignID,
 		&i.CallCampaignID,
 		&i.JobStatus,
-		&i.Priority,
-		&i.Summary,
+		&i.JobPriority,
+		&i.JobSummary,
 		&i.JobCreationDate,
 		&i.JobScheduleDate,
 		&i.JobCompletionDate,
-		&i.ScheduledTime,
-		&i.FirstDispatchDate,
-		&i.HoldDate,
-		&i.StartOfWorkTime,
-		&i.EndOfWorkTime,
-		&i.BookedByUserID,
-		&i.DispatchedByUserID,
-		&i.SoldByTechnicianID,
+		&i.AssignedTechID,
+		&i.SoldTechID,
+		&i.SoldBuID,
+		&i.CountOfEstimates,
+		&i.SoldEstimateID,
+		&i.CampaignCategoryID,
+		&i.InvoiceID,
+		&i.OpportunityID,
 		&i.IsWarranty,
-		&i.WarrantyForJobID,
+		&i.WarrantyOfJobID,
 		&i.IsRecall,
-		&i.RecallForJobID,
+		&i.RecallOfJobID,
+		&i.IsConverted,
+		&i.SurveyScore,
+		&i.DispatchedByUserID,
+		&i.BookedByUserID,
+		&i.JobIDOfCreatedLead,
+		&i.IsZeroCost,
+		&i.ScheduledTime,
+		&i.FirstDispatch,
+		&i.HoldDate,
+		&i.SoldDate,
+		&i.StartTime,
+		&i.EndTime,
+		&i.PrimaryTechID,
+		&i.FirstResponseTime,
 	)
-	return i, err
-}
-
-const upsertJobTechnician = `-- name: UpsertJobTechnician :one
-INSERT INTO job_technician (job_id, technician_id, split_percentage, assignment_order, hours_worked)
-VALUES ($1, $2, $3, $4, $5)
-ON CONFLICT (job_id, technician_id)
-DO UPDATE SET
-    split_percentage = EXCLUDED.split_percentage,
-    assignment_order = EXCLUDED.assignment_order,
-    hours_worked = EXCLUDED.hours_worked
-RETURNING job_technician_id, job_id, technician_id, split_percentage, assignment_order, hours_worked
-`
-
-type UpsertJobTechnicianParams struct {
-	JobID           int32          `json:"job_id"`
-	TechnicianID    int32          `json:"technician_id"`
-	SplitPercentage string         `json:"split_percentage"`
-	AssignmentOrder int32          `json:"assignment_order"`
-	HoursWorked     sql.NullString `json:"hours_worked"`
-}
-
-func (q *Queries) UpsertJobTechnician(ctx context.Context, arg UpsertJobTechnicianParams) (JobTechnician, error) {
-	row := q.db.QueryRowContext(ctx, upsertJobTechnician,
-		arg.JobID,
-		arg.TechnicianID,
-		arg.SplitPercentage,
-		arg.AssignmentOrder,
-		arg.HoursWorked,
-	)
-	var i JobTechnician
-	err := row.Scan(
-		&i.JobTechnicianID,
-		&i.JobID,
-		&i.TechnicianID,
-		&i.SplitPercentage,
-		&i.AssignmentOrder,
-		&i.HoursWorked,
-	)
-	return i, err
-}
-
-const upsertJobType = `-- name: UpsertJobType :one
-INSERT INTO job_type (job_type_name, sold_threshold)
-VALUES ($1, $2)
-ON CONFLICT (job_type_name) 
-DO UPDATE SET sold_threshold = EXCLUDED.sold_threshold
-RETURNING job_type_id, job_type_name, sold_threshold
-`
-
-type UpsertJobTypeParams struct {
-	JobTypeName   string         `json:"job_type_name"`
-	SoldThreshold sql.NullString `json:"sold_threshold"`
-}
-
-func (q *Queries) UpsertJobType(ctx context.Context, arg UpsertJobTypeParams) (JobType, error) {
-	row := q.db.QueryRowContext(ctx, upsertJobType, arg.JobTypeName, arg.SoldThreshold)
-	var i JobType
-	err := row.Scan(&i.JobTypeID, &i.JobTypeName, &i.SoldThreshold)
 	return i, err
 }

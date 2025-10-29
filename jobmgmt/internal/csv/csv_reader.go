@@ -1,4 +1,4 @@
-package internal
+package csv
 
 import (
 	"encoding/csv"
@@ -37,4 +37,38 @@ func GetCSVHeader(filename string, reqFields []string) (map[string]int, error) {
 		return columnIndices, nil
 	}
 	return columnIndices, nil
+}
+
+func ReadCSVAsMap(filename string) ([]map[string]string, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	reader := csv.NewReader(file)
+	rows, err := reader.ReadAll()
+	if err != nil {
+		return nil, err
+	}
+
+	if len(rows) == 0 {
+		return nil, fmt.Errorf("empty CSV file")
+	}
+
+	// get list of headers:
+	headers := rows[0]
+
+	// remaining rows data:
+	results := make([]map[string]string, 0, len(rows)-1)
+	for _, row := range rows[1:] {
+		record := make(map[string]string)
+		for i, header := range headers {
+			if i < len(row) {
+				record[header] = row[i]
+			}
+		}
+		results = append(results, record)
+	}
+	return results, nil
 }

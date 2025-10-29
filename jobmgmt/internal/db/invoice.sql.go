@@ -8,191 +8,139 @@ package db
 import (
 	"context"
 	"database/sql"
-	"time"
 )
 
 const createInvoice = `-- name: CreateInvoice :one
-
-INSERT INTO invoice (invoice_id, job_id, invoice_date)
-VALUES ($1, $2, $3)
-RETURNING invoice_id, job_id, invoice_date, created_at
+INSERT INTO invoices (id, customers_id, jobs_id, estimates_id, business_units_id, is_paid, created_at, updated_at)
+VALUES (
+    $1, 
+    $2,
+    $3,
+    $4,
+    $5, 
+    $6,
+    NOW(),
+    NOW()
+)
+RETURNING id, customers_id, jobs_id, estimates_id, business_units_id, is_paid, created_at, updated_at
 `
 
 type CreateInvoiceParams struct {
-	InvoiceID   int32     `json:"invoice_id"`
-	JobID       int32     `json:"job_id"`
-	InvoiceDate time.Time `json:"invoice_date"`
+	ID              int32         `json:"id"`
+	CustomersID     int32         `json:"customers_id"`
+	JobsID          sql.NullInt32 `json:"jobs_id"`
+	EstimatesID     sql.NullInt32 `json:"estimates_id"`
+	BusinessUnitsID sql.NullInt32 `json:"business_units_id"`
+	IsPaid          sql.NullBool  `json:"is_paid"`
 }
 
-// =====================================================
-// INVOICE QUERIES
-// =====================================================
 func (q *Queries) CreateInvoice(ctx context.Context, arg CreateInvoiceParams) (Invoice, error) {
-	row := q.db.QueryRowContext(ctx, createInvoice, arg.InvoiceID, arg.JobID, arg.InvoiceDate)
+	row := q.db.QueryRowContext(ctx, createInvoice,
+		arg.ID,
+		arg.CustomersID,
+		arg.JobsID,
+		arg.EstimatesID,
+		arg.BusinessUnitsID,
+		arg.IsPaid,
+	)
 	var i Invoice
 	err := row.Scan(
-		&i.InvoiceID,
-		&i.JobID,
-		&i.InvoiceDate,
+		&i.ID,
+		&i.CustomersID,
+		&i.JobsID,
+		&i.EstimatesID,
+		&i.BusinessUnitsID,
+		&i.IsPaid,
 		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
-}
-
-const createInvoiceItem = `-- name: CreateInvoiceItem :one
-
-INSERT INTO invoice_item (
-    invoice_id, gl_account_id, description, quantity,
-    unit_price, amount, tax_amount, item_order
-)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-RETURNING invoice_item_id, invoice_id, gl_account_id, description, quantity, unit_price, amount, tax_amount, item_order
-`
-
-type CreateInvoiceItemParams struct {
-	InvoiceID   int32          `json:"invoice_id"`
-	GlAccountID sql.NullInt32  `json:"gl_account_id"`
-	Description sql.NullString `json:"description"`
-	Quantity    string         `json:"quantity"`
-	UnitPrice   string         `json:"unit_price"`
-	Amount      string         `json:"amount"`
-	TaxAmount   sql.NullString `json:"tax_amount"`
-	ItemOrder   sql.NullInt32  `json:"item_order"`
-}
-
-// =====================================================
-// INVOICE ITEM QUERIES
-// =====================================================
-func (q *Queries) CreateInvoiceItem(ctx context.Context, arg CreateInvoiceItemParams) (InvoiceItem, error) {
-	row := q.db.QueryRowContext(ctx, createInvoiceItem,
-		arg.InvoiceID,
-		arg.GlAccountID,
-		arg.Description,
-		arg.Quantity,
-		arg.UnitPrice,
-		arg.Amount,
-		arg.TaxAmount,
-		arg.ItemOrder,
-	)
-	var i InvoiceItem
-	err := row.Scan(
-		&i.InvoiceItemID,
-		&i.InvoiceID,
-		&i.GlAccountID,
-		&i.Description,
-		&i.Quantity,
-		&i.UnitPrice,
-		&i.Amount,
-		&i.TaxAmount,
-		&i.ItemOrder,
-	)
-	return i, err
-}
-
-const deleteInvoiceItems = `-- name: DeleteInvoiceItems :exec
-DELETE FROM invoice_item WHERE invoice_id = $1
-`
-
-func (q *Queries) DeleteInvoiceItems(ctx context.Context, invoiceID int32) error {
-	_, err := q.db.ExecContext(ctx, deleteInvoiceItems, invoiceID)
-	return err
 }
 
 const getInvoiceByID = `-- name: GetInvoiceByID :one
-SELECT invoice_id, job_id, invoice_date, created_at FROM invoice WHERE invoice_id = $1
+SELECT id, customers_id, jobs_id, estimates_id, business_units_id, is_paid, created_at, updated_at FROM invoices WHERE id = $1
 `
 
-func (q *Queries) GetInvoiceByID(ctx context.Context, invoiceID int32) (Invoice, error) {
-	row := q.db.QueryRowContext(ctx, getInvoiceByID, invoiceID)
+func (q *Queries) GetInvoiceByID(ctx context.Context, id int32) (Invoice, error) {
+	row := q.db.QueryRowContext(ctx, getInvoiceByID, id)
 	var i Invoice
 	err := row.Scan(
-		&i.InvoiceID,
-		&i.JobID,
-		&i.InvoiceDate,
+		&i.ID,
+		&i.CustomersID,
+		&i.JobsID,
+		&i.EstimatesID,
+		&i.BusinessUnitsID,
+		&i.IsPaid,
 		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const getInvoiceByJobID = `-- name: GetInvoiceByJobID :one
-SELECT invoice_id, job_id, invoice_date, created_at FROM invoice WHERE job_id = $1
+SELECT id, customers_id, jobs_id, estimates_id, business_units_id, is_paid, created_at, updated_at FROM invoices WHERE jobs_id = $1
 `
 
-func (q *Queries) GetInvoiceByJobID(ctx context.Context, jobID int32) (Invoice, error) {
-	row := q.db.QueryRowContext(ctx, getInvoiceByJobID, jobID)
+func (q *Queries) GetInvoiceByJobID(ctx context.Context, jobsID sql.NullInt32) (Invoice, error) {
+	row := q.db.QueryRowContext(ctx, getInvoiceByJobID, jobsID)
 	var i Invoice
 	err := row.Scan(
-		&i.InvoiceID,
-		&i.JobID,
-		&i.InvoiceDate,
+		&i.ID,
+		&i.CustomersID,
+		&i.JobsID,
+		&i.EstimatesID,
+		&i.BusinessUnitsID,
+		&i.IsPaid,
 		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
-const getInvoiceItemsByInvoiceID = `-- name: GetInvoiceItemsByInvoiceID :many
-SELECT invoice_item_id, invoice_id, gl_account_id, description, quantity, unit_price, amount, tax_amount, item_order FROM invoice_item 
-WHERE invoice_id = $1
-ORDER BY item_order
-`
-
-func (q *Queries) GetInvoiceItemsByInvoiceID(ctx context.Context, invoiceID int32) ([]InvoiceItem, error) {
-	rows, err := q.db.QueryContext(ctx, getInvoiceItemsByInvoiceID, invoiceID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []InvoiceItem
-	for rows.Next() {
-		var i InvoiceItem
-		if err := rows.Scan(
-			&i.InvoiceItemID,
-			&i.InvoiceID,
-			&i.GlAccountID,
-			&i.Description,
-			&i.Quantity,
-			&i.UnitPrice,
-			&i.Amount,
-			&i.TaxAmount,
-			&i.ItemOrder,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const upsertInvoice = `-- name: UpsertInvoice :one
-INSERT INTO invoice (invoice_id, job_id, invoice_date)
-VALUES ($1, $2, $3)
-ON CONFLICT (invoice_id)
-DO UPDATE SET
-    job_id = EXCLUDED.job_id,
-    invoice_date = EXCLUDED.invoice_date
-RETURNING invoice_id, job_id, invoice_date, created_at
+INSERT INTO invoices (id, customers_id, jobs_id, estimates_id, business_units_id, is_paid, created_at, updated_at)
+VALUES (
+    $1, 
+    $2,
+    $3,
+    $4,
+    $5, 
+    $6,
+    NOW(),
+    NOW()
+)
+ON CONFLICT (id) DO NOTHING
+RETURNING id, customers_id, jobs_id, estimates_id, business_units_id, is_paid, created_at, updated_at
 `
 
 type UpsertInvoiceParams struct {
-	InvoiceID   int32     `json:"invoice_id"`
-	JobID       int32     `json:"job_id"`
-	InvoiceDate time.Time `json:"invoice_date"`
+	ID              int32         `json:"id"`
+	CustomersID     int32         `json:"customers_id"`
+	JobsID          sql.NullInt32 `json:"jobs_id"`
+	EstimatesID     sql.NullInt32 `json:"estimates_id"`
+	BusinessUnitsID sql.NullInt32 `json:"business_units_id"`
+	IsPaid          sql.NullBool  `json:"is_paid"`
 }
 
 func (q *Queries) UpsertInvoice(ctx context.Context, arg UpsertInvoiceParams) (Invoice, error) {
-	row := q.db.QueryRowContext(ctx, upsertInvoice, arg.InvoiceID, arg.JobID, arg.InvoiceDate)
+	row := q.db.QueryRowContext(ctx, upsertInvoice,
+		arg.ID,
+		arg.CustomersID,
+		arg.JobsID,
+		arg.EstimatesID,
+		arg.BusinessUnitsID,
+		arg.IsPaid,
+	)
 	var i Invoice
 	err := row.Scan(
-		&i.InvoiceID,
-		&i.JobID,
-		&i.InvoiceDate,
+		&i.ID,
+		&i.CustomersID,
+		&i.JobsID,
+		&i.EstimatesID,
+		&i.BusinessUnitsID,
+		&i.IsPaid,
 		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }

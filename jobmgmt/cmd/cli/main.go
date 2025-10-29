@@ -1,52 +1,72 @@
 package main
 
 import (
-	"context"
+	"fmt"
+	"log"
 	"os"
 
-	"github.com/datsun80zx/jobs_report/internal/db"
-	"github.com/fatih/color"
-	"github.com/spf13/cobra"
+	internal "github.com/datsun80zx/jobs_report.git/jobmgmt/internal/csv"
+	"github.com/joho/godotenv"
 )
 
-var (
-	successColor = color.New(color.FgGreen, color.Bold)
-	errorColor   = color.New(color.FgRed, color.Bold)
-	headerColor  = color.New(color.FgCyan, color.Bold)
-	infoColor    = color.New(color.FgYellow)
-)
+type Config struct {
+	TestCXPath        string
+	TestJobPath       string
+	CustomerDataPath  string
+	JobSkillsDataPath string
+	JobTypesDataPath  string
+	JobDataPath       string
+}
 
-type App struct {
-	queries *db.Queries
-	ctx     context.Context
+func loadConfig() Config {
+	required := map[string]*string{
+		"TEST_CX_DATA":  new(string),
+		"TEST_JOB_DATA": new(string),
+		"CX_DATA":       new(string),
+		"JOB_SKILLS":    new(string),
+		"JOB_TYPES":     new(string),
+		"JOB_DATA":      new(string),
+	}
+
+	var missing []string
+	for key, ptr := range required {
+		*ptr = os.Getenv(key)
+		if *ptr == "" {
+			missing = append(missing, key)
+		}
+	}
+
+	if len(missing) > 0 {
+		log.Fatalf("Missing required environment variables: %v", missing)
+	}
+	return Config{
+		TestCXPath:        *required["TEST_CX_DATA"],
+		TestJobPath:       *required["TEST_JOB_DATA"],
+		CustomerDataPath:  *required["CX_DATA"],
+		JobSkillsDataPath: *required["JOB_SKILLS"],
+		JobTypesDataPath:  *required["JOB_TYPES"],
+		JobDataPath:       *required["JOB_DATA"],
+	}
 }
 
 func main() {
-
-	dbConn := setupDatabase()
-	queries := db.New(dbConn)
-
-	app := &App{
-		queries: queries,
-		ctx:     context.Background(),
+	err := godotenv.Load("C:/Users/mrich/dev_work/jobs_report/.env")
+	if err != nil {
+		log.Fatal("Error loading .env file")
 	}
 
-	rootCmd := &cobra.Command{
-		Use:   "jobmgmt",
-		Short: "Job Management CLI Tool",
-		Long:  "A CLI tool for managing and viewing job data",
+	config := loadConfig()
+	results, err := internal.ReadCSVAsMap(config.TestCXPath)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
 	}
 
-	rootCmd.AddCommand(app.listJobsCmd())
-	rootCmd.AddCommand(app.jobDetailsCmd())
-	rootCmd.AddCommand(app.customerReportCmd())
-	rootCmd.AddCommand(app.technicianReportCmd())
-	rootCmd.AddCommand(app.revenueReportCmd())
-	rootCmd.AddCommand(app.statsCmd())
-
-	if err := rootCmd.Execute(); err != nil {
-		errorColor.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
+	for i, row := range results {
+		fmt.Printf("Row %d:\n\n", i)
+		for i, col := range row {
+			fmt.Printf("Field: %v  Value: %v\n\n", i, col)
+		}
 	}
 
 }

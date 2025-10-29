@@ -5,7 +5,7 @@ CREATE TABLE customers (
     city TEXT,
     state TEXT,
     zip TEXT,
-    type TEXT,
+    customer_type TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );

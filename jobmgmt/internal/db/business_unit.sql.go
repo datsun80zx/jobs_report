@@ -7,49 +7,79 @@ package db
 
 import (
 	"context"
+	"database/sql"
 )
 
 const createBusinessUnit = `-- name: CreateBusinessUnit :one
-
-INSERT INTO business_unit (business_unit_name)
-VALUES ($1)
-RETURNING business_unit_id, business_unit_name
+INSERT INTO business_units (id, name, description, created_at, updated_at)
+VALUES (
+    $1, 
+    $2,
+    $3,
+    NOW(),
+    NOW()
+)
+RETURNING id, name, description, created_at, updated_at
 `
 
-// =====================================================
-// BUSINESS UNIT QUERIES
-// =====================================================
-func (q *Queries) CreateBusinessUnit(ctx context.Context, businessUnitName string) (BusinessUnit, error) {
-	row := q.db.QueryRowContext(ctx, createBusinessUnit, businessUnitName)
+type CreateBusinessUnitParams struct {
+	ID          int32          `json:"id"`
+	Name        string         `json:"name"`
+	Description sql.NullString `json:"description"`
+}
+
+func (q *Queries) CreateBusinessUnit(ctx context.Context, arg CreateBusinessUnitParams) (BusinessUnit, error) {
+	row := q.db.QueryRowContext(ctx, createBusinessUnit, arg.ID, arg.Name, arg.Description)
 	var i BusinessUnit
-	err := row.Scan(&i.BusinessUnitID, &i.BusinessUnitName)
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
 	return i, err
 }
 
 const getBusinessUnitByID = `-- name: GetBusinessUnitByID :one
-SELECT business_unit_id, business_unit_name FROM business_unit WHERE business_unit_id = $1
+SELECT id, name, description, created_at, updated_at FROM business_units 
+WHERE id = $1
 `
 
-func (q *Queries) GetBusinessUnitByID(ctx context.Context, businessUnitID int32) (BusinessUnit, error) {
-	row := q.db.QueryRowContext(ctx, getBusinessUnitByID, businessUnitID)
+func (q *Queries) GetBusinessUnitByID(ctx context.Context, id int32) (BusinessUnit, error) {
+	row := q.db.QueryRowContext(ctx, getBusinessUnitByID, id)
 	var i BusinessUnit
-	err := row.Scan(&i.BusinessUnitID, &i.BusinessUnitName)
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
 	return i, err
 }
 
 const getBusinessUnitByName = `-- name: GetBusinessUnitByName :one
-SELECT business_unit_id, business_unit_name FROM business_unit WHERE business_unit_name = $1
+SELECT id, name, description, created_at, updated_at FROM business_units 
+WHERE name = $1
 `
 
-func (q *Queries) GetBusinessUnitByName(ctx context.Context, businessUnitName string) (BusinessUnit, error) {
-	row := q.db.QueryRowContext(ctx, getBusinessUnitByName, businessUnitName)
+func (q *Queries) GetBusinessUnitByName(ctx context.Context, name string) (BusinessUnit, error) {
+	row := q.db.QueryRowContext(ctx, getBusinessUnitByName, name)
 	var i BusinessUnit
-	err := row.Scan(&i.BusinessUnitID, &i.BusinessUnitName)
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
 	return i, err
 }
 
 const listBusinessUnits = `-- name: ListBusinessUnits :many
-SELECT business_unit_id, business_unit_name FROM business_unit ORDER BY business_unit_name
+SELECT id, name, description, created_at, updated_at FROM business_units 
+ORDER BY name
 `
 
 func (q *Queries) ListBusinessUnits(ctx context.Context) ([]BusinessUnit, error) {
@@ -61,7 +91,13 @@ func (q *Queries) ListBusinessUnits(ctx context.Context) ([]BusinessUnit, error)
 	var items []BusinessUnit
 	for rows.Next() {
 		var i BusinessUnit
-		if err := rows.Scan(&i.BusinessUnitID, &i.BusinessUnitName); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -76,15 +112,33 @@ func (q *Queries) ListBusinessUnits(ctx context.Context) ([]BusinessUnit, error)
 }
 
 const upsertBusinessUnit = `-- name: UpsertBusinessUnit :one
-INSERT INTO business_unit (business_unit_name)
-VALUES ($1)
-ON CONFLICT (business_unit_name) DO NOTHING
-RETURNING business_unit_id, business_unit_name
+INSERT INTO business_units (id, name, description, created_at, updated_at)
+VALUES (
+    $1, 
+    $2,
+    $3,
+    NOW(),
+    NOW()
+)
+ON CONFLICT (id) DO NOTHING
+RETURNING id, name, description, created_at, updated_at
 `
 
-func (q *Queries) UpsertBusinessUnit(ctx context.Context, businessUnitName string) (BusinessUnit, error) {
-	row := q.db.QueryRowContext(ctx, upsertBusinessUnit, businessUnitName)
+type UpsertBusinessUnitParams struct {
+	ID          int32          `json:"id"`
+	Name        string         `json:"name"`
+	Description sql.NullString `json:"description"`
+}
+
+func (q *Queries) UpsertBusinessUnit(ctx context.Context, arg UpsertBusinessUnitParams) (BusinessUnit, error) {
+	row := q.db.QueryRowContext(ctx, upsertBusinessUnit, arg.ID, arg.Name, arg.Description)
 	var i BusinessUnit
-	err := row.Scan(&i.BusinessUnitID, &i.BusinessUnitName)
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
 	return i, err
 }

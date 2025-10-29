@@ -1,11 +1,12 @@
--- =====================================================
--- PROJECT QUERIES
--- =====================================================
-
 -- name: CreateProject :one
-INSERT INTO project (project_name)
-VALUES ($1)
+INSERT INTO projects (id, summary, created_at, updated_at)
+VALUES (
+    $1,
+    $2,
+    NOW(),
+    NOW()
+)
 RETURNING *;
 
 -- name: GetProjectByID :one
-SELECT * FROM project WHERE project_id = $1;
+SELECT * FROM projects WHERE projects.id = $1;

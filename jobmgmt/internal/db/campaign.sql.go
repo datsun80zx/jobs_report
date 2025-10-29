@@ -10,145 +10,76 @@ import (
 	"database/sql"
 )
 
-const createCampaign = `-- name: CreateCampaign :one
-INSERT INTO campaign (campaign_name, campaign_category_id, campaign_type, phone_number)
-VALUES ($1, $2, $3, $4)
-RETURNING campaign_id, campaign_name, campaign_category_id, campaign_type, phone_number, created_at
-`
-
-type CreateCampaignParams struct {
-	CampaignName       string         `json:"campaign_name"`
-	CampaignCategoryID sql.NullInt32  `json:"campaign_category_id"`
-	CampaignType       string         `json:"campaign_type"`
-	PhoneNumber        sql.NullString `json:"phone_number"`
-}
-
-func (q *Queries) CreateCampaign(ctx context.Context, arg CreateCampaignParams) (Campaign, error) {
-	row := q.db.QueryRowContext(ctx, createCampaign,
-		arg.CampaignName,
-		arg.CampaignCategoryID,
-		arg.CampaignType,
-		arg.PhoneNumber,
-	)
-	var i Campaign
-	err := row.Scan(
-		&i.CampaignID,
-		&i.CampaignName,
-		&i.CampaignCategoryID,
-		&i.CampaignType,
-		&i.PhoneNumber,
-		&i.CreatedAt,
-	)
-	return i, err
-}
-
 const createCampaignCategory = `-- name: CreateCampaignCategory :one
-
-INSERT INTO campaign_category (category_name)
-VALUES ($1)
-RETURNING campaign_category_id, category_name
+INSERT INTO campaign_categories (id, name, description, created_at, updated_at)
+VALUES (
+    $1,
+    $2,
+    $3,
+    NOW(),
+    NOW()
+)
+RETURNING id, name, description, created_at, updated_at
 `
 
-// =====================================================
-// CAMPAIGN QUERIES
-// =====================================================
-func (q *Queries) CreateCampaignCategory(ctx context.Context, categoryName string) (CampaignCategory, error) {
-	row := q.db.QueryRowContext(ctx, createCampaignCategory, categoryName)
+type CreateCampaignCategoryParams struct {
+	ID          int32          `json:"id"`
+	Name        string         `json:"name"`
+	Description sql.NullString `json:"description"`
+}
+
+func (q *Queries) CreateCampaignCategory(ctx context.Context, arg CreateCampaignCategoryParams) (CampaignCategory, error) {
+	row := q.db.QueryRowContext(ctx, createCampaignCategory, arg.ID, arg.Name, arg.Description)
 	var i CampaignCategory
-	err := row.Scan(&i.CampaignCategoryID, &i.CategoryName)
-	return i, err
-}
-
-const getCampaignByID = `-- name: GetCampaignByID :one
-SELECT campaign_id, campaign_name, campaign_category_id, campaign_type, phone_number, created_at FROM campaign WHERE campaign_id = $1
-`
-
-func (q *Queries) GetCampaignByID(ctx context.Context, campaignID int32) (Campaign, error) {
-	row := q.db.QueryRowContext(ctx, getCampaignByID, campaignID)
-	var i Campaign
 	err := row.Scan(
-		&i.CampaignID,
-		&i.CampaignName,
-		&i.CampaignCategoryID,
-		&i.CampaignType,
-		&i.PhoneNumber,
+		&i.ID,
+		&i.Name,
+		&i.Description,
 		&i.CreatedAt,
-	)
-	return i, err
-}
-
-const getCampaignByName = `-- name: GetCampaignByName :one
-SELECT campaign_id, campaign_name, campaign_category_id, campaign_type, phone_number, created_at FROM campaign WHERE campaign_name = $1
-`
-
-func (q *Queries) GetCampaignByName(ctx context.Context, campaignName string) (Campaign, error) {
-	row := q.db.QueryRowContext(ctx, getCampaignByName, campaignName)
-	var i Campaign
-	err := row.Scan(
-		&i.CampaignID,
-		&i.CampaignName,
-		&i.CampaignCategoryID,
-		&i.CampaignType,
-		&i.PhoneNumber,
-		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const getCampaignCategoryByName = `-- name: GetCampaignCategoryByName :one
-SELECT campaign_category_id, category_name FROM campaign_category WHERE category_name = $1
+SELECT id, name, description, created_at, updated_at FROM campaign_categories WHERE id = $1
 `
 
-func (q *Queries) GetCampaignCategoryByName(ctx context.Context, categoryName string) (CampaignCategory, error) {
-	row := q.db.QueryRowContext(ctx, getCampaignCategoryByName, categoryName)
+func (q *Queries) GetCampaignCategoryByName(ctx context.Context, id int32) (CampaignCategory, error) {
+	row := q.db.QueryRowContext(ctx, getCampaignCategoryByName, id)
 	var i CampaignCategory
-	err := row.Scan(&i.CampaignCategoryID, &i.CategoryName)
-	return i, err
-}
-
-const upsertCampaign = `-- name: UpsertCampaign :one
-INSERT INTO campaign (campaign_name, campaign_category_id, campaign_type, phone_number)
-VALUES ($1, $2, $3, $4)
-ON CONFLICT DO NOTHING
-RETURNING campaign_id, campaign_name, campaign_category_id, campaign_type, phone_number, created_at
-`
-
-type UpsertCampaignParams struct {
-	CampaignName       string         `json:"campaign_name"`
-	CampaignCategoryID sql.NullInt32  `json:"campaign_category_id"`
-	CampaignType       string         `json:"campaign_type"`
-	PhoneNumber        sql.NullString `json:"phone_number"`
-}
-
-func (q *Queries) UpsertCampaign(ctx context.Context, arg UpsertCampaignParams) (Campaign, error) {
-	row := q.db.QueryRowContext(ctx, upsertCampaign,
-		arg.CampaignName,
-		arg.CampaignCategoryID,
-		arg.CampaignType,
-		arg.PhoneNumber,
-	)
-	var i Campaign
 	err := row.Scan(
-		&i.CampaignID,
-		&i.CampaignName,
-		&i.CampaignCategoryID,
-		&i.CampaignType,
-		&i.PhoneNumber,
+		&i.ID,
+		&i.Name,
+		&i.Description,
 		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const upsertCampaignCategory = `-- name: UpsertCampaignCategory :one
-INSERT INTO campaign_category (category_name)
-VALUES ($1)
-ON CONFLICT (category_name) DO NOTHING
-RETURNING campaign_category_id, category_name
+INSERT INTO campaign_categories (id, name, description, created_at, updated_at)
+VALUES ($1, $2, $3, NOW(), NOW())
+ON CONFLICT (id) DO NOTHING
+RETURNING id, name, description, created_at, updated_at
 `
 
-func (q *Queries) UpsertCampaignCategory(ctx context.Context, categoryName string) (CampaignCategory, error) {
-	row := q.db.QueryRowContext(ctx, upsertCampaignCategory, categoryName)
+type UpsertCampaignCategoryParams struct {
+	ID          int32          `json:"id"`
+	Name        string         `json:"name"`
+	Description sql.NullString `json:"description"`
+}
+
+func (q *Queries) UpsertCampaignCategory(ctx context.Context, arg UpsertCampaignCategoryParams) (CampaignCategory, error) {
+	row := q.db.QueryRowContext(ctx, upsertCampaignCategory, arg.ID, arg.Name, arg.Description)
 	var i CampaignCategory
-	err := row.Scan(&i.CampaignCategoryID, &i.CategoryName)
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
 	return i, err
 }

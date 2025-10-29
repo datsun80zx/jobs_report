@@ -8,73 +8,87 @@ package db
 import (
 	"context"
 	"database/sql"
+
+	"github.com/google/uuid"
 )
 
 const createTechnician = `-- name: CreateTechnician :one
-
-INSERT INTO technician (technician_name, business_unit_id, email)
-VALUES ($1, $2, $3)
-RETURNING technician_id, technician_name, business_unit_id, email, created_at
+INSERT INTO technicians (id, name, email, phone_number, created_at, updated_at)
+VALUES (
+    $1,
+    $2,
+    $3,
+    $4,
+    NOW(),
+    NOW()
+)
+RETURNING id, name, email, phone_number, created_at, updated_at
 `
 
 type CreateTechnicianParams struct {
-	TechnicianName string         `json:"technician_name"`
-	BusinessUnitID sql.NullInt32  `json:"business_unit_id"`
-	Email          sql.NullString `json:"email"`
+	ID          uuid.UUID      `json:"id"`
+	Name        string         `json:"name"`
+	Email       string         `json:"email"`
+	PhoneNumber sql.NullString `json:"phone_number"`
 }
 
-// =====================================================
-// TECHNICIAN QUERIES
-// =====================================================
 func (q *Queries) CreateTechnician(ctx context.Context, arg CreateTechnicianParams) (Technician, error) {
-	row := q.db.QueryRowContext(ctx, createTechnician, arg.TechnicianName, arg.BusinessUnitID, arg.Email)
+	row := q.db.QueryRowContext(ctx, createTechnician,
+		arg.ID,
+		arg.Name,
+		arg.Email,
+		arg.PhoneNumber,
+	)
 	var i Technician
 	err := row.Scan(
-		&i.TechnicianID,
-		&i.TechnicianName,
-		&i.BusinessUnitID,
+		&i.ID,
+		&i.Name,
 		&i.Email,
+		&i.PhoneNumber,
 		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const getTechnicianByID = `-- name: GetTechnicianByID :one
-SELECT technician_id, technician_name, business_unit_id, email, created_at FROM technician WHERE technician_id = $1
+SELECT id, name, email, phone_number, created_at, updated_at FROM technicians WHERE technicians.id = $1
 `
 
-func (q *Queries) GetTechnicianByID(ctx context.Context, technicianID int32) (Technician, error) {
-	row := q.db.QueryRowContext(ctx, getTechnicianByID, technicianID)
+func (q *Queries) GetTechnicianByID(ctx context.Context, id uuid.UUID) (Technician, error) {
+	row := q.db.QueryRowContext(ctx, getTechnicianByID, id)
 	var i Technician
 	err := row.Scan(
-		&i.TechnicianID,
-		&i.TechnicianName,
-		&i.BusinessUnitID,
+		&i.ID,
+		&i.Name,
 		&i.Email,
+		&i.PhoneNumber,
 		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const getTechnicianByName = `-- name: GetTechnicianByName :one
-SELECT technician_id, technician_name, business_unit_id, email, created_at FROM technician WHERE technician_name = $1
+SELECT id, name, email, phone_number, created_at, updated_at FROM technicians WHERE technicians.name = $1
 `
 
-func (q *Queries) GetTechnicianByName(ctx context.Context, technicianName string) (Technician, error) {
-	row := q.db.QueryRowContext(ctx, getTechnicianByName, technicianName)
+func (q *Queries) GetTechnicianByName(ctx context.Context, name string) (Technician, error) {
+	row := q.db.QueryRowContext(ctx, getTechnicianByName, name)
 	var i Technician
 	err := row.Scan(
-		&i.TechnicianID,
-		&i.TechnicianName,
-		&i.BusinessUnitID,
+		&i.ID,
+		&i.Name,
 		&i.Email,
+		&i.PhoneNumber,
 		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const listTechnicians = `-- name: ListTechnicians :many
-SELECT technician_id, technician_name, business_unit_id, email, created_at FROM technician ORDER BY technician_name
+SELECT id, name, email, phone_number, created_at, updated_at FROM technicians ORDER BY name
 `
 
 func (q *Queries) ListTechnicians(ctx context.Context) ([]Technician, error) {
@@ -87,11 +101,12 @@ func (q *Queries) ListTechnicians(ctx context.Context) ([]Technician, error) {
 	for rows.Next() {
 		var i Technician
 		if err := rows.Scan(
-			&i.TechnicianID,
-			&i.TechnicianName,
-			&i.BusinessUnitID,
+			&i.ID,
+			&i.Name,
 			&i.Email,
+			&i.PhoneNumber,
 			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -107,27 +122,34 @@ func (q *Queries) ListTechnicians(ctx context.Context) ([]Technician, error) {
 }
 
 const upsertTechnician = `-- name: UpsertTechnician :one
-INSERT INTO technician (technician_name, business_unit_id, email)
-VALUES ($1, $2, $3)
-ON CONFLICT DO NOTHING
-RETURNING technician_id, technician_name, business_unit_id, email, created_at
+INSERT INTO technicians (id, name, email, phone_number, created_at, updated_at)
+VALUES ($1, $2, $3, $4, NOW(), NOw())
+ON CONFLICT (id) DO NOTHING
+RETURNING id, name, email, phone_number, created_at, updated_at
 `
 
 type UpsertTechnicianParams struct {
-	TechnicianName string         `json:"technician_name"`
-	BusinessUnitID sql.NullInt32  `json:"business_unit_id"`
-	Email          sql.NullString `json:"email"`
+	ID          uuid.UUID      `json:"id"`
+	Name        string         `json:"name"`
+	Email       string         `json:"email"`
+	PhoneNumber sql.NullString `json:"phone_number"`
 }
 
 func (q *Queries) UpsertTechnician(ctx context.Context, arg UpsertTechnicianParams) (Technician, error) {
-	row := q.db.QueryRowContext(ctx, upsertTechnician, arg.TechnicianName, arg.BusinessUnitID, arg.Email)
+	row := q.db.QueryRowContext(ctx, upsertTechnician,
+		arg.ID,
+		arg.Name,
+		arg.Email,
+		arg.PhoneNumber,
+	)
 	var i Technician
 	err := row.Scan(
-		&i.TechnicianID,
-		&i.TechnicianName,
-		&i.BusinessUnitID,
+		&i.ID,
+		&i.Name,
 		&i.Email,
+		&i.PhoneNumber,
 		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
