@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"unicode"
 )
 
 func GetCSVHeader(filename string, reqFields []string) (map[string]int, error) {
@@ -57,7 +58,19 @@ func ReadCSVAsMap(filename string) ([]map[string]string, error) {
 	}
 
 	// get list of headers:
-	headers := rows[0]
+	headers := make([]string, len(rows[0]))
+	for i, header := range rows[0] {
+		// fmt.Printf("Header %d raw bytes: %q\n", i, header)
+		// fmt.Printf("Header %d runes: ", i)
+		// for _, r := range header {
+		// 	fmt.Printf("[U+%04X]", r)
+		// }
+		// fmt.Println()
+		if i == 0 {
+			header = strings.TrimPrefix(header, "\ufeff")
+		}
+		headers[i] = trimAll(header)
+	}
 
 	// remaining rows data:
 	results := make([]map[string]string, 0, len(rows)-1)
@@ -65,14 +78,18 @@ func ReadCSVAsMap(filename string) ([]map[string]string, error) {
 		record := make(map[string]string)
 		for i, header := range headers {
 			if i < len(row) {
-				record[header] = row[i]
+				record[header] = trimAll(row[i])
 			}
 		}
 		results = append(results, record)
 	}
 	return results, nil
 }
-
+func trimAll(s string) string {
+	return strings.TrimFunc(s, func(r rune) bool {
+		return unicode.IsSpace(r) || unicode.IsControl(r)
+	})
+}
 func ReadCSVHeaderTypes(filename string) (map[string]string, error) {
 	file, err := os.Open(filename)
 	if err != nil {

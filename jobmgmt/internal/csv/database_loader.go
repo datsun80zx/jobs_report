@@ -61,4 +61,62 @@ func ConvertCSVData(data []map[string]string, typeMap map[string]string) ([]map[
 	return result, nil
 }
 
-func InsertDataToDB()
+/* as i go through the csv file each column needs to be addressed to determine if the column represents data from another table or if it is only related to data of the job.
+if it is related then i need to verify if that data exists in the related table. If not we need to add it, if it does then we should simply reference it.*/
+
+func InsertDataToDB(data []map[string]string) ([]Job, error) {
+	jobsData := []Job{}
+
+	for _, job := range data {
+		jobsData = append(jobsData, Job{
+			JobID:                     job["Job ID"],
+			JobType:                   job["Job Type"],
+			Status:                    job["Status"],
+			JobsSubtotal:              job["Jobs Subtotal"],
+			CreatedDate:               job["Created Date"],
+			ScheduledDate:             job["Scheduled Date"],
+			CompletionDate:            job["Completion Date"],
+			CustomerID:                job["Customer ID"],
+			LocationID:                job["Location ID"],
+			AssignedTechnicians:       job["Assigned Technicians"],
+			SoldBy:                    job["Sold By"],
+			SoldByBusinessUnitID:      job["Sold By Business Unit ID"],
+			Estimates:                 job["Estimates"],
+			JobsEstimateSalesSubtotal: job["Jobs Estimate Sales Subtotal"],
+			JobCampaignID:             job["Job Campaign"],
+			CallCampaignID:            job["Call Campaign ID"],
+			CampaignCategory:          job["Campaign Category"],
+			BusinessUnitID:            job["Business Unit ID"],
+			InvoiceID:                 job["Invoice ID"],
+			Summary:                   job["Summary"],
+			ProjectNumber:             job["Project Number"],
+			Opportunity:               job["Opportunity"],
+			Warranty:                  job["Warranty"],
+			WarrantyFor:               job["Warranty For"],
+			Recall:                    job["Recall"],
+			RecallFor:                 job["Recall For"],
+			Converted:                 job["Converted"],
+			SurveyResult:              job["Survey Result"],
+			DispatchedBy:              job["Dispatched By"],
+			BookedBy:                  job["Booked By"],
+			Priority:                  job["Priority"],
+			LeadCreated:               job["Lead Created"],
+			ZeroDollarJob:             job["Zero Dollar Job"],
+			JobsTotal:                 job["Job Total"],
+			ScheduledTime:             job["Scheduled Time"],
+			ScheduledDateYearMonth:    job["Scheduled Date Year Month"],
+			FirstDispatch:             job["First Dispatch"],
+			HoldDate:                  job["Hold Date"],
+			SoldOn:                    job["Sold On"],
+			StartOfWorkingTime:        job["Start Of Working Time"],
+			EndOfWorkingTime:          job["End Of Working Time"],
+			CustomerType:              job["Customer Type"],
+			MemberStatus:              job["Member Status"],
+			PrimaryTechnician:         job["Primary Technician"],
+			FirstResponseTime:         job["First Response Time"],
+			TotalHoursWorked:          job["Total Hours Worked"],
+			Tags:                      job["Tags"],
+		})
+	}
+	return jobsData, nil
+}

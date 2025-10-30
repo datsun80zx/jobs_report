@@ -59,28 +59,39 @@ func main() {
 	}
 
 	config := loadEnvConfig()
-	// results, err := internal.ReadCSVAsMap(config.TestCXPath)
-	// if err != nil {
-	// 	fmt.Println("Error:", err)
-	// 	return
-	// }
-
-	// // for i, row := range results {
-	// // 	fmt.Printf("Row %d:\n\n", i)
-	// // 	for i, col := range row {
-	// // 		fmt.Printf("Field: %v  Value: %v\n\n", i, col)
-	// // 	}
-	// // }
-
-	results, err := internal.ReadCSVHeaderTypes(config.HeaderTypesPath)
+	results, err := internal.ReadCSVAsMap(config.TestJobPath)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
 	}
 
-	for k, v := range results {
-		fmt.Printf("Key: %v....Value: %v\n\n", k, v)
+	// for k, v := range results[0] {
+	// 	fmt.Printf("Key is: '%s'(len=%d)...Value is: '%s'\n", k, len(k), v)
+	// }
+
+	fmt.Printf("Job ID: %s\n", results[0]["Job ID"])
+	// fmt.Printf("Job ID: %v\n", results[0])
+
+	jobStructured, err := internal.InsertDataToDB(results)
+	if err != nil {
+		fmt.Printf("error: %v", err)
+	}
+
+	for i, row := range jobStructured {
+		fmt.Printf("\nRow %d:...\n\n", i)
+		fmt.Printf("%#v\n", row)
 
 	}
-	fmt.Printf("total headers: %d\n", len(results))
+
+	// results, err := internal.ReadCSVHeaderTypes(config.HeaderTypesPath)
+	// if err != nil {
+	// 	fmt.Println("Error:", err)
+	// 	return
+	// }
+
+	// for k, v := range results {
+	// 	fmt.Printf("Key: %v....Value: %v\n\n", k, v)
+
+	// }
+	// fmt.Printf("total headers: %d\n", len(results))
 }
