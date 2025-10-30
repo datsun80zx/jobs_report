@@ -9,7 +9,7 @@ CREATE TABLE estimates (
     invoices_id INT,
     opportunities_id INT,
     jobs_id INT,
-    sold_on_date TIMESTAMP,
+    sold_on_date DATE,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     FOREIGN KEY (sold_by) REFERENCES technicians(id),

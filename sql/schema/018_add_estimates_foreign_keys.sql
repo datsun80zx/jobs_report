@@ -5,4 +5,4 @@ ADD FOREIGN KEY (jobs_id) REFERENCES jobs(id);
 
 -- +goose Down
 ALTER TABLE estimates
-DROP CONSTRAINT invoices_jobs_id_fkey;
+DROP CONSTRAINT estimates_jobs_id_fkey;

@@ -5,4 +5,4 @@ ADD FOREIGN KEY (jobs_id) REFERENCES jobs(id);
 
 -- +goose Down
 ALTER TABLE opportunities
-DROP CONSTRAINT invoices_jobs_id_fkey;
+DROP CONSTRAINT opportunities_jobs_id_fkey;

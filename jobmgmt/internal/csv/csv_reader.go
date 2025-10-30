@@ -72,3 +72,31 @@ func ReadCSVAsMap(filename string) ([]map[string]string, error) {
 	}
 	return results, nil
 }
+
+func ReadCSVHeaderTypes(filename string) (map[string]string, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	reader := csv.NewReader(file)
+	rows, err := reader.ReadAll()
+	if err != nil {
+		return nil, err
+	}
+
+	if len(rows) < 2 {
+		return nil, fmt.Errorf("empty CSV file")
+	}
+
+	// remaining rows data:
+	results := make(map[string]string)
+	for i, row := range rows[1:] {
+		if len(row) < 2 {
+			return nil, fmt.Errorf("row %d has fewer than 2 columns", i+2)
+		}
+		results[row[0]] = row[1]
+	}
+	return results, nil
+}

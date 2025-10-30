@@ -9,16 +9,17 @@ import (
 	"github.com/joho/godotenv"
 )
 
-type Config struct {
+type EnvConfig struct {
 	TestCXPath        string
 	TestJobPath       string
 	CustomerDataPath  string
 	JobSkillsDataPath string
 	JobTypesDataPath  string
 	JobDataPath       string
+	HeaderTypesPath   string
 }
 
-func loadConfig() Config {
+func loadEnvConfig() EnvConfig {
 	required := map[string]*string{
 		"TEST_CX_DATA":  new(string),
 		"TEST_JOB_DATA": new(string),
@@ -26,6 +27,7 @@ func loadConfig() Config {
 		"JOB_SKILLS":    new(string),
 		"JOB_TYPES":     new(string),
 		"JOB_DATA":      new(string),
+		"HEADER_TYPES":  new(string),
 	}
 
 	var missing []string
@@ -39,13 +41,14 @@ func loadConfig() Config {
 	if len(missing) > 0 {
 		log.Fatalf("Missing required environment variables: %v", missing)
 	}
-	return Config{
+	return EnvConfig{
 		TestCXPath:        *required["TEST_CX_DATA"],
 		TestJobPath:       *required["TEST_JOB_DATA"],
 		CustomerDataPath:  *required["CX_DATA"],
 		JobSkillsDataPath: *required["JOB_SKILLS"],
 		JobTypesDataPath:  *required["JOB_TYPES"],
 		JobDataPath:       *required["JOB_DATA"],
+		HeaderTypesPath:   *required["HEADER_TYPES"],
 	}
 }
 
@@ -55,18 +58,29 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	config := loadConfig()
-	results, err := internal.ReadCSVAsMap(config.TestCXPath)
+	config := loadEnvConfig()
+	// results, err := internal.ReadCSVAsMap(config.TestCXPath)
+	// if err != nil {
+	// 	fmt.Println("Error:", err)
+	// 	return
+	// }
+
+	// // for i, row := range results {
+	// // 	fmt.Printf("Row %d:\n\n", i)
+	// // 	for i, col := range row {
+	// // 		fmt.Printf("Field: %v  Value: %v\n\n", i, col)
+	// // 	}
+	// // }
+
+	results, err := internal.ReadCSVHeaderTypes(config.HeaderTypesPath)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
 	}
 
-	for i, row := range results {
-		fmt.Printf("Row %d:\n\n", i)
-		for i, col := range row {
-			fmt.Printf("Field: %v  Value: %v\n\n", i, col)
-		}
-	}
+	for k, v := range results {
+		fmt.Printf("Key: %v....Value: %v\n\n", k, v)
 
+	}
+	fmt.Printf("total headers: %d\n", len(results))
 }
