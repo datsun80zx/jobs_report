@@ -64,7 +64,7 @@ func ConvertCSVData(data []map[string]string, typeMap map[string]string) ([]map[
 /* as i go through the csv file each column needs to be addressed to determine if the column represents data from another table or if it is only related to data of the job.
 if it is related then i need to verify if that data exists in the related table. If not we need to add it, if it does then we should simply reference it.*/
 
-func InsertDataToDB(data []map[string]string) ([]Job, error) {
+func ProcessMapToStruct(data []map[string]string) ([]Job, error) {
 	jobsData := []Job{}
 
 	for _, job := range data {
@@ -120,3 +120,11 @@ func InsertDataToDB(data []map[string]string) ([]Job, error) {
 	}
 	return jobsData, nil
 }
+
+func InsertCustomer(data []map[string]string)
+
+func InsertJobTypes(data []map[string]string) error {
+
+}
+
+// I am going to define the mini functions here and then define the actual handler else where in a separate package

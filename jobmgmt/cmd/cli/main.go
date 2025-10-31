@@ -72,7 +72,7 @@ func main() {
 	fmt.Printf("Job ID: %s\n", results[0]["Job ID"])
 	// fmt.Printf("Job ID: %v\n", results[0])
 
-	jobStructured, err := internal.InsertDataToDB(results)
+	jobStructured, err := internal.ProcessMapToStruct(results)
 	if err != nil {
 		fmt.Printf("error: %v", err)
 	}
